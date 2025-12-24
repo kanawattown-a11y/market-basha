@@ -1,0 +1,416 @@
+// This is your Prisma schema file for Market Basha
+// Using PostgreSQL database
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== ENUMS ====================
+
+enum UserRole {
+  ADMIN
+  OPERATIONS
+  DRIVER
+  USER
+}
+
+enum UserStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum NotificationType {
+  ORDER_STATUS
+  NEW_ORDER
+  DRIVER_ASSIGNED
+  OFFER
+  LOW_STOCK
+  NEW_USER
+  TICKET_UPDATE
+  DELIVERY_COMPLETE
+}
+
+// ==================== MODELS ====================
+
+model User {
+  id            String     @id @default(cuid())
+  name          String
+  email         String?    @unique
+  phone         String     @unique
+  password      String
+  role          UserRole   @default(USER)
+  status        UserStatus @default(PENDING)
+  avatar        String?
+  
+  // للسائقين
+  vehicleType   String?
+  vehiclePlate  String?
+  isAvailable   Boolean    @default(true)
+  
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  lastLoginAt   DateTime?
+  
+  // العلاقات
+  addresses          Address[]
+  orders             Order[]          @relation("CustomerOrders")
+  driverOrders       Order[]          @relation("DriverOrders")
+  tickets            Ticket[]         @relation("UserTickets")
+  assignedTickets    Ticket[]         @relation("AssignedTickets")
+  ticketMessages     TicketMessage[]
+  notifications      Notification[]
+  pushSubscriptions  PushSubscription[]
+  auditLogs          AuditLog[]
+  createdProducts    Product[]
+  createdOffers      Offer[]
+  
+  @@index([role])
+  @@index([status])
+  @@index([phone])
+  @@index([email])
+}
+
+model Address {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title       String   // مثل: المنزل، العمل
+  fullAddress String
+  area        String   // المنطقة
+  street      String?
+  building    String?
+  floor       String?
+  notes       String?  // ملاحظات إضافية
+  isDefault   Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  orders      Order[]
+  
+  @@index([userId])
+}
+
+model ServiceArea {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  nameEn      String?
+  isActive    Boolean  @default(true)
+  deliveryFee Decimal  @default(0) @db.Decimal(10, 2)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([isActive])
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  nameEn      String?
+  description String?
+  image       String?
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
+  
+  parentId    String?
+  parent      Category? @relation("CategoryChildren", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryChildren")
+  
+  products    Product[]
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@index([parentId])
+  @@index([isActive])
+}
+
+model Product {
+  id              String   @id @default(cuid())
+  name            String
+  nameEn          String?
+  description     String?
+  descriptionEn   String?
+  image           String?
+  images          String[] // صور إضافية
+  
+  price           Decimal  @db.Decimal(10, 2)
+  compareAtPrice  Decimal? @db.Decimal(10, 2) // السعر قبل الخصم
+  costPrice       Decimal? @db.Decimal(10, 2) // سعر التكلفة
+  
+  sku             String?  @unique
+  barcode         String?
+  
+  stock           Int      @default(0)
+  lowStockThreshold Int    @default(10)
+  trackStock      Boolean  @default(true)
+  
+  unit            String   @default("قطعة") // الوحدة
+  weight          Decimal? @db.Decimal(10, 3)
+  
+  isActive        Boolean  @default(true)
+  isFeatured      Boolean  @default(false)
+  
+  categoryId      String
+  category        Category @relation(fields: [categoryId], references: [id])
+  
+  createdById     String?
+  createdBy       User?    @relation(fields: [createdById], references: [id])
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  orderItems      OrderItem[]
+  offerProducts   OfferProduct[]
+  
+  @@index([categoryId])
+  @@index([isActive])
+  @@index([isFeatured])
+  @@index([stock])
+  @@index([name])
+}
+
+model Offer {
+  id          String   @id @default(cuid())
+  title       String
+  titleEn     String?
+  description String?
+  image       String?
+  
+  discountType    String   @default("percentage") // percentage, fixed
+  discountValue   Decimal  @db.Decimal(10, 2)
+  minOrderAmount  Decimal? @db.Decimal(10, 2)
+  
+  startDate   DateTime
+  endDate     DateTime
+  isActive    Boolean  @default(true)
+  
+  createdById String?
+  createdBy   User?    @relation(fields: [createdById], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  products    OfferProduct[]
+  
+  @@index([isActive])
+  @@index([startDate, endDate])
+}
+
+model OfferProduct {
+  id        String  @id @default(cuid())
+  offerId   String
+  offer     Offer   @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@unique([offerId, productId])
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  orderNumber     String      @unique
+  
+  customerId      String
+  customer        User        @relation("CustomerOrders", fields: [customerId], references: [id])
+  
+  driverId        String?
+  driver          User?       @relation("DriverOrders", fields: [driverId], references: [id])
+  
+  addressId       String
+  address         Address     @relation(fields: [addressId], references: [id])
+  
+  status          OrderStatus @default(PENDING)
+  
+  subtotal        Decimal     @db.Decimal(10, 2)
+  deliveryFee     Decimal     @db.Decimal(10, 2) @default(0)
+  discount        Decimal     @db.Decimal(10, 2) @default(0)
+  total           Decimal     @db.Decimal(10, 2)
+  
+  notes           String?     // ملاحظات من العميل
+  internalNotes   String?     // ملاحظات داخلية
+  
+  estimatedDelivery DateTime?
+  deliveredAt     DateTime?
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  items           OrderItem[]
+  statusHistory   OrderStatusHistory[]
+  
+  @@index([customerId])
+  @@index([driverId])
+  @@index([status])
+  @@index([orderNumber])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id          String  @id @default(cuid())
+  orderId     String
+  order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  productId   String
+  product     Product @relation(fields: [productId], references: [id])
+  
+  quantity    Int
+  price       Decimal @db.Decimal(10, 2) // السعر وقت الطلب
+  total       Decimal @db.Decimal(10, 2)
+  notes       String? // ملاحظات للمنتج
+  
+  @@index([orderId])
+  @@index([productId])
+}
+
+model OrderStatusHistory {
+  id        String      @id @default(cuid())
+  orderId   String
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  status    OrderStatus
+  notes     String?
+  
+  createdAt DateTime    @default(now())
+  
+  @@index([orderId])
+}
+
+model Ticket {
+  id          String         @id @default(cuid())
+  ticketNumber String        @unique
+  
+  userId      String
+  user        User           @relation("UserTickets", fields: [userId], references: [id])
+  
+  assignedToId String?
+  assignedTo  User?          @relation("AssignedTickets", fields: [assignedToId], references: [id])
+  
+  subject     String
+  status      TicketStatus   @default(OPEN)
+  priority    TicketPriority @default(MEDIUM)
+  
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  closedAt    DateTime?
+  
+  messages    TicketMessage[]
+  
+  @@index([userId])
+  @@index([assignedToId])
+  @@index([status])
+}
+
+model TicketMessage {
+  id        String   @id @default(cuid())
+  ticketId  String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  
+  message   String
+  attachments String[]
+  
+  createdAt DateTime @default(now())
+  
+  @@index([ticketId])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type      NotificationType
+  title     String
+  message   String
+  data      Json?            // بيانات إضافية مثل orderId
+  
+  isRead    Boolean          @default(false)
+  
+  createdAt DateTime         @default(now())
+  
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+model PushSubscription {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  endpoint     String   @unique
+  p256dh       String
+  auth         String
+  
+  createdAt    DateTime @default(now())
+  
+  @@index([userId])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  
+  action      String   // CREATE, UPDATE, DELETE, LOGIN, etc.
+  entity      String   // User, Product, Order, etc.
+  entityId    String?
+  
+  oldData     Json?
+  newData     Json?
+  
+  ipAddress   String?
+  userAgent   String?
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([entity])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model Settings {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  
+  updatedAt   DateTime @updatedAt
+}

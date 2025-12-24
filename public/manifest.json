@@ -1,0 +1,24 @@
+{
+    "name": "ماركت باشا",
+    "short_name": "ماركت باشا",
+    "description": "متجرك الإلكتروني للتسوق بسهولة وراحة",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#FEC00F",
+    "orientation": "portrait",
+    "dir": "rtl",
+    "lang": "ar",
+    "icons": [
+        {
+            "src": "/favicon.ico",
+            "sizes": "64x64",
+            "type": "image/x-icon"
+        }
+    ],
+    "categories": [
+        "shopping",
+        "food",
+        "lifestyle"
+    ]
+}
