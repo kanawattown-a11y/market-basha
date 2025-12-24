@@ -74,7 +74,6 @@ export async function POST(
                 ticketId: id,
                 userId: user.id,
                 message: content,
-                isStaff,
             },
         });
 
