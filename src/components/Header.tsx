@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { ShoppingCart, User, Search, Menu, X, LogOut, Package, MapPin, Settings, LayoutDashboard, Truck, Ticket } from 'lucide-react';
+import { ShoppingCart, User, Search, Menu, X, LogOut, Package, MapPin, Settings, LayoutDashboard, Truck, Ticket, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface HeaderProps {
@@ -92,6 +92,7 @@ export default function Header({ className }: HeaderProps) {
             { href: '/account/orders', label: 'طلباتي', icon: Package },
             { href: '/account/addresses', label: 'عناويني', icon: MapPin },
             { href: '/support', label: 'الدعم', icon: Ticket },
+            { href: '/favorites', label: 'المفضلة', icon: Heart },
             { href: '/account/settings', label: 'الإعدادات', icon: Settings },
         ];
     };
@@ -104,10 +105,10 @@ export default function Header({ className }: HeaderProps) {
                 <div className="flex items-center justify-between gap-4">
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-2 shrink-0">
-                        <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-                            <span className="text-secondary font-bold text-xl">م</span>
+                        <div className="w-12 h-12 relative">
+                            <img src="/logo.svg" alt="ماركت باشا" className="w-full h-full object-contain" />
                         </div>
-                        <span className="font-bold text-secondary-800 hidden sm:block">ماركت باشا</span>
+                        <span className="font-bold text-secondary-800 hidden sm:block text-lg">ماركت باشا</span>
                     </Link>
 
                     {/* Search - Desktop */}

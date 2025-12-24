@@ -126,9 +126,27 @@ export default function RegisterPage() {
                                 <input
                                     type="tel"
                                     value={formData.phone}
-                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                    className="input pr-12"
-                                    placeholder="مثال: 0912345678"
+                                    onChange={(e) => {
+                                        let val = e.target.value;
+                                        // Auto-format for Syrian numbers
+                                        if (val.startsWith('09')) val = '+963' + val.substring(1);
+                                        if (val.startsWith('9')) val = '+963' + val;
+
+                                        // Allow only + and digits
+                                        val = val.replace(/[^\d+]/g, '');
+
+                                        // Ensure it doesn't delete +963 easily if it's there? 
+                                        // Actually just let the user edit, but the above rules help.
+
+                                        setFormData({ ...formData, phone: val });
+                                    }}
+                                    className={`input pr-12 ${formData.phone && !/^\+9639\d{8}$/.test(formData.phone)
+                                        ? 'border-red-500 focus:border-red-500'
+                                        : formData.phone && /^\+9639\d{8}$/.test(formData.phone)
+                                            ? 'border-green-500 focus:border-green-500'
+                                            : ''
+                                        }`}
+                                    placeholder="+9639xxxxxxxx"
                                     required
                                     dir="ltr"
                                 />
@@ -136,6 +154,16 @@ export default function RegisterPage() {
                                     <Phone className="w-5 h-5" />
                                 </div>
                             </div>
+                            {formData.phone && !/^\+9639\d{8}$/.test(formData.phone) && (
+                                <p className="text-xs text-red-500 mt-1 mr-1">
+                                    يجب أن يكون الرقم بالصيغة السورية الصحيحة (+9639xxxxxxxx)
+                                </p>
+                            )}
+                            {formData.phone && /^\+9639\d{8}$/.test(formData.phone) && (
+                                <p className="text-xs text-green-600 mt-1 mr-1">
+                                    صيغة الرقم صحيحة
+                                </p>
+                            )}
                         </div>
 
                         <div>
@@ -178,6 +206,59 @@ export default function RegisterPage() {
                                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                 </button>
                             </div>
+
+                            {/* Password Strength Meter */}
+                            {formData.password && (
+                                <div className="mt-2 space-y-1">
+                                    <div className="flex gap-1 h-1.5">
+                                        {[1, 2, 3, 4].map((level) => {
+                                            const score =
+                                                (formData.password.length >= 8 ? 1 : 0) +
+                                                (/[A-Z]/.test(formData.password) ? 1 : 0) +
+                                                (/[0-9]/.test(formData.password) ? 1 : 0) +
+                                                (/[^A-Za-z0-9]/.test(formData.password) ? 1 : 0);
+
+                                            let color = 'bg-gray-200';
+                                            if (score >= 1) color = 'bg-red-500';
+                                            if (score >= 3) color = 'bg-yellow-500';
+                                            if (score >= 4) color = 'bg-green-500';
+
+                                            const isActive = score >= level;
+
+                                            // Simplified logic for individual bars based on total score
+                                            let barColor = 'bg-gray-200';
+                                            if (score <= 2) {
+                                                if (level <= score && level <= 2) barColor = 'bg-red-500';
+                                            } else if (score === 3) {
+                                                if (level <= 3) barColor = 'bg-yellow-500';
+                                            } else {
+                                                barColor = 'bg-green-500';
+                                            }
+
+                                            if (!isActive) barColor = 'bg-gray-200';
+
+                                            return (
+                                                <div key={level} className={`flex-1 rounded-full ${barColor} transition-all duration-300`} />
+                                            );
+                                        })}
+                                    </div>
+                                    <div className="flex justify-between text-xs">
+                                        <span className="text-gray-400">قوة كلمة المرور</span>
+                                        {(() => {
+                                            const score =
+                                                (formData.password.length >= 8 ? 1 : 0) +
+                                                (/[A-Z]/.test(formData.password) ? 1 : 0) +
+                                                (/[0-9]/.test(formData.password) ? 1 : 0) +
+                                                (/[^A-Za-z0-9]/.test(formData.password) ? 1 : 0);
+
+                                            if (score < 2) return <span className="text-red-500">ضعيفة</span>;
+                                            if (score < 4) return <span className="text-yellow-500">متوسطة</span>;
+                                            return <span className="text-green-500">قوية</span>;
+                                        })()}
+                                    </div>
+                                </div>
+                            )}
+
                             <p className="text-xs text-gray-400 mt-1">
                                 يجب أن تحتوي على حرف كبير وصغير ورقم
                             </p>

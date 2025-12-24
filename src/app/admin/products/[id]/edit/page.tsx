@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronLeft, Save, AlertCircle, Trash2, Upload, X, Star, Image as ImageIcon } from 'lucide-react';
 
@@ -10,8 +10,9 @@ interface Category {
     name: string;
 }
 
-export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = use(params);
+export default function EditProductPage() {
+    const params = useParams();
+    const id = params.id as string;
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -222,8 +223,8 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                                     <div
                                         key={index}
                                         className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all ${mainImageIndex === index
-                                                ? 'border-primary ring-2 ring-primary/30'
-                                                : 'border-gray-200 hover:border-gray-300'
+                                            ? 'border-primary ring-2 ring-primary/30'
+                                            : 'border-gray-200 hover:border-gray-300'
                                             }`}
                                     >
                                         <img

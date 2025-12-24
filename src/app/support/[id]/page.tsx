@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import {
     ChevronLeft,
     Send,
@@ -28,14 +29,16 @@ interface TicketDetail {
     messages: Message[];
 }
 
-export default function TicketDetailPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = use(params);
+export default function TicketDetailPage() {
+    const params = useParams();
+    const id = params.id as string;
     const [ticket, setTicket] = useState<TicketDetail | null>(null);
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState('');
     const [sending, setSending] = useState(false);
 
     const fetchTicket = async () => {
+        if (!id) return;
         try {
             const res = await fetch(`/api/tickets/${id}`);
             if (res.ok) {
@@ -128,8 +131,8 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
                             className={`flex ${msg.isStaff ? 'justify-start' : 'justify-end'}`}
                         >
                             <div className={`max-w-[80%] rounded-2xl p-4 ${msg.isStaff
-                                    ? 'bg-white border border-gray-200 rounded-br-none'
-                                    : 'bg-primary text-secondary rounded-bl-none'
+                                ? 'bg-white border border-gray-200 rounded-br-none'
+                                : 'bg-primary text-secondary rounded-bl-none'
                                 }`}>
                                 <p className={`text-sm font-medium mb-1 ${msg.isStaff ? 'text-primary' : 'text-secondary-800'}`}>
                                     {msg.user.name}

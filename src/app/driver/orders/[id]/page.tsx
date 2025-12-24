@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import {
     ChevronLeft,
     Phone,
@@ -26,13 +27,15 @@ interface OrderDetail {
     items: { id: string; quantity: number; price: number; product: { name: string } }[];
 }
 
-export default function DriverOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = use(params);
+export default function DriverOrderDetailPage() {
+    const params = useParams();
+    const id = params.id as string;
     const [order, setOrder] = useState<OrderDetail | null>(null);
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
 
     const fetchOrder = async () => {
+        if (!id) return;
         try {
             const res = await fetch(`/api/orders/${id}`);
             if (res.ok) {

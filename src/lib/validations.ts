@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-// التحقق من رقم الهاتف السوري
-const syrianPhoneRegex = /^(\+963|0)?(9\d{8})$/;
+// التحقق من رقم الهاتف السوري (يجب أن يبدأ بـ +963)
+const syrianPhoneRegex = /^\+9639\d{8}$/;
 
 // التسجيل
 export const registerSchema = z.object({
@@ -43,8 +43,8 @@ export const productSchema = z.object({
     descriptionEn: z.string().optional(),
     price: z.number()
         .positive('السعر يجب أن يكون أكبر من صفر'),
-    compareAtPrice: z.number().positive().optional().nullable(),
-    costPrice: z.number().positive().optional().nullable(),
+    compareAtPrice: z.number().min(0).optional().nullable(),
+    costPrice: z.number().min(0).optional().nullable(),
     sku: z.string().optional(),
     barcode: z.string().optional(),
     stock: z.number().int().min(0, 'الكمية لا يمكن أن تكون سالبة'),
@@ -55,6 +55,8 @@ export const productSchema = z.object({
     isActive: z.boolean().default(true),
     isFeatured: z.boolean().default(false),
     categoryId: z.string().min(1, 'يرجى اختيار الفئة'),
+    image: z.string().optional().nullable(),
+    images: z.array(z.string()).optional(),
 });
 
 // الفئة
@@ -67,6 +69,7 @@ export const categorySchema = z.object({
     parentId: z.string().optional().nullable(),
     sortOrder: z.number().int().default(0),
     isActive: z.boolean().default(true),
+    image: z.string().optional().nullable(),
 });
 
 // العنوان
@@ -124,7 +127,7 @@ export const offerSchema = z.object({
     description: z.string().max(1000).optional(),
     discountType: z.enum(['percentage', 'fixed']),
     discountValue: z.number().positive('قيمة الخصم يجب أن تكون أكبر من صفر'),
-    minOrderAmount: z.number().positive().optional().nullable(),
+    minOrderAmount: z.number().min(0).optional().nullable(),
     startDate: z.date(),
     endDate: z.date(),
     isActive: z.boolean().default(true),

@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import {
     ChevronLeft,
     Send,
@@ -31,8 +32,9 @@ interface TicketDetail {
     messages: Message[];
 }
 
-export default function AdminTicketDetailPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = use(params);
+export default function AdminTicketDetailPage() {
+    const params = useParams();
+    const id = params.id as string;
     const [ticket, setTicket] = useState<TicketDetail | null>(null);
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState('');
@@ -40,6 +42,7 @@ export default function AdminTicketDetailPage({ params }: { params: Promise<{ id
     const [updating, setUpdating] = useState(false);
 
     const fetchTicket = async () => {
+        if (!id) return;
         try {
             const res = await fetch(`/api/tickets/${id}`);
             if (res.ok) {
@@ -147,8 +150,8 @@ export default function AdminTicketDetailPage({ params }: { params: Promise<{ id
                             <div
                                 key={msg.id}
                                 className={`p-4 rounded-xl ${msg.isStaff
-                                        ? 'bg-primary/10 mr-8'
-                                        : 'bg-gray-100 ml-8'
+                                    ? 'bg-primary/10 mr-8'
+                                    : 'bg-gray-100 ml-8'
                                     }`}
                             >
                                 <div className="flex items-center justify-between mb-2">

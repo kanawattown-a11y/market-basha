@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useParams } from 'next/navigation';
 import {
     ChevronLeft,
     Phone,
@@ -34,12 +35,15 @@ interface OrderDetail {
     items: { id: string; quantity: number; price: number; product: { name: string; image: string | null } }[];
 }
 
-export default function OrderTrackingPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = use(params);
+export default function OrderTrackingPage() {
+    const params = useParams();
+    const id = params.id as string;
     const [order, setOrder] = useState<OrderDetail | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        if (!id) return;
+
         const fetchOrder = async () => {
             try {
                 const res = await fetch(`/api/orders/${id}`);

@@ -90,7 +90,7 @@ function HeroCarousel({ offers }: { offers: Offer[] }) {
                         <p className="text-xl md:text-2xl opacity-80">تسوق بسهولة وراحة</p>
                     </div>
                 </div>
-                <div className="absolute inset-0 bg-[url('/patterns/dots.svg')] opacity-10"></div>
+                <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent"></div>
             </div>
         );
     }

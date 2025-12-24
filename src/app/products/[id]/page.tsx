@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useParams } from 'next/navigation';
 import {
     Package,
     ShoppingCart,
@@ -32,14 +33,17 @@ interface Product {
     category: { id: string; name: string };
 }
 
-export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = use(params);
+export default function ProductDetailPage() {
+    const params = useParams();
+    const id = params.id as string;
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [quantity, setQuantity] = useState(1);
     const [addedToCart, setAddedToCart] = useState(false);
 
     useEffect(() => {
+        if (!id) return;
+
         const fetchProduct = async () => {
             try {
                 const res = await fetch(`/api/products/${id}`);
