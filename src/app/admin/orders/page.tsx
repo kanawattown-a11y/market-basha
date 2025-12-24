@@ -8,9 +8,11 @@ import {
     Truck,
     User,
     ChevronRight,
-    ChevronLeft
+    ChevronLeft,
+    UserPlus
 } from 'lucide-react';
 import { formatCurrency, formatDateTime, translateOrderStatus, getOrderStatusColor } from '@/lib/utils';
+import DriverAssignmentModal from '@/components/admin/DriverAssignmentModal';
 
 interface Order {
     id: string;
@@ -19,7 +21,7 @@ interface Order {
     total: number;
     createdAt: string;
     customer: { name: string; phone: string };
-    driver: { name: string } | null;
+    driver: { id: string; name: string } | null;
     address: { area: string };
     _count: { items: number };
 }
@@ -31,6 +33,10 @@ export default function AdminOrdersPage() {
     const [totalPages, setTotalPages] = useState(1);
     const [statusFilter, setStatusFilter] = useState('');
     const [search, setSearch] = useState('');
+
+    // Driver Assignment State
+    const [driverModalOpen, setDriverModalOpen] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
     const fetchOrders = async () => {
         setLoading(true);
@@ -57,7 +63,35 @@ export default function AdminOrdersPage() {
 
     useEffect(() => {
         fetchOrders();
-    }, [page, statusFilter]);
+    }, [page, statusFilter, search]);
+
+    const openDriverModal = (order: Order) => {
+        setSelectedOrder(order);
+        setDriverModalOpen(true);
+    };
+
+    const handleAssignDriver = async (driverId: string) => {
+        if (!selectedOrder) return;
+
+        try {
+            const res = await fetch(`/api/orders/${selectedOrder.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ driverId }),
+            });
+
+            if (res.ok) {
+                // Refresh orders
+                fetchOrders();
+                setDriverModalOpen(false); // Close modal on success
+                // Optionally show success message
+            } else {
+                console.error('Failed to assign driver:', await res.json());
+            }
+        } catch (error) {
+            console.error('Error assigning driver:', error);
+        }
+    };
 
     return (
         <div className="space-y-4 md:space-y-6">
@@ -108,34 +142,48 @@ export default function AdminOrdersPage() {
                         <div className="p-6 text-center text-gray-500">لا توجد طلبات</div>
                     ) : (
                         orders.map((order) => (
-                            <Link
-                                key={order.id}
-                                href={`/admin/orders/${order.id}`}
-                                className="block p-4 hover:bg-gray-50"
-                            >
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className="font-bold text-secondary-800">#{order.orderNumber}</span>
-                                    <span className={`badge ${getOrderStatusColor(order.status)}`}>
-                                        {translateOrderStatus(order.status)}
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
-                                    <User className="w-4 h-4" />
-                                    <span>{order.customer.name}</span>
-                                    <span className="text-gray-400">•</span>
-                                    <span>{order.address.area}</span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-primary font-bold">{formatCurrency(Number(order.total))}</span>
-                                    <span className="text-xs text-gray-400">{formatDateTime(order.createdAt)}</span>
-                                </div>
-                                {order.driver && (
-                                    <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
-                                        <Truck className="w-4 h-4" />
-                                        <span>{order.driver.name}</span>
+                            <div key={order.id} className="p-4 hover:bg-gray-50">
+                                <Link href={`/admin/orders/${order.id}`} className="block">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="font-bold text-secondary-800">#{order.orderNumber}</span>
+                                        <span className={`badge ${getOrderStatusColor(order.status)}`}>
+                                            {translateOrderStatus(order.status)}
+                                        </span>
                                     </div>
-                                )}
-                            </Link>
+                                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
+                                        <User className="w-4 h-4" />
+                                        <span>{order.customer.name}</span>
+                                        <span className="text-gray-400">•</span>
+                                        <span>{order.address.area}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-primary font-bold">{formatCurrency(Number(order.total))}</span>
+                                        <span className="text-xs text-gray-400">{formatDateTime(order.createdAt)}</span>
+                                    </div>
+                                </Link>
+                                <div className="mt-3 flex items-center justify-between pt-3 border-t border-gray-100">
+                                    {order.driver ? (
+                                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                                            <Truck className="w-4 h-4" />
+                                            <span>{order.driver.name}</span>
+                                            <button
+                                                onClick={() => openDriverModal(order)}
+                                                className="text-xs text-primary hover:underline mr-1"
+                                            >
+                                                (تغيير)
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => openDriverModal(order)}
+                                            className="flex items-center gap-1 text-sm text-primary hover:bg-primary/5 px-2 py-1 rounded-lg transition-colors"
+                                        >
+                                            <UserPlus className="w-4 h-4" />
+                                            تعيين سائق
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
                         ))
                     )}
                 </div>
@@ -189,12 +237,24 @@ export default function AdminOrdersPage() {
                                         </td>
                                         <td>
                                             {order.driver ? (
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-2 group relative">
                                                     <Truck className="w-4 h-4 text-gray-400" />
-                                                    {order.driver.name}
+                                                    <span>{order.driver.name}</span>
+                                                    <button
+                                                        onClick={() => openDriverModal(order)}
+                                                        className="invisible group-hover:visible absolute right-full mr-2 bg-white shadow-md border rounded px-2 py-1 text-xs text-primary whitespace-nowrap z-10"
+                                                    >
+                                                        تغيير السائق
+                                                    </button>
                                                 </div>
                                             ) : (
-                                                <span className="text-gray-400">-</span>
+                                                <button
+                                                    onClick={() => openDriverModal(order)}
+                                                    className="flex items-center gap-1 text-xs text-primary hover:bg-primary/5 px-2 py-1 rounded-lg transition-colors"
+                                                >
+                                                    <UserPlus className="w-3 h-3" />
+                                                    تعيين
+                                                </button>
                                             )}
                                         </td>
                                         <td className="text-sm text-gray-500">{formatDateTime(order.createdAt)}</td>
@@ -232,6 +292,16 @@ export default function AdminOrdersPage() {
                     </div>
                 )}
             </div>
+
+            {selectedOrder && (
+                <DriverAssignmentModal
+                    isOpen={driverModalOpen}
+                    onClose={() => setDriverModalOpen(false)}
+                    onAssign={handleAssignDriver}
+                    currentDriverId={selectedOrder.driver?.id}
+                    orderId={selectedOrder.id}
+                />
+            )}
         </div>
     );
 }

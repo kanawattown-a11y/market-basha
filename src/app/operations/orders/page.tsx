@@ -8,9 +8,11 @@ import {
     User,
     ChevronRight,
     ChevronLeft,
-    RefreshCw
+    RefreshCw,
+    UserPlus
 } from 'lucide-react';
 import { formatCurrency, formatRelativeTime, translateOrderStatus, getOrderStatusColor } from '@/lib/utils';
+import DriverAssignmentModal from '@/components/admin/DriverAssignmentModal';
 
 interface Order {
     id: string;
@@ -19,7 +21,7 @@ interface Order {
     total: number;
     createdAt: string;
     customer: { name: string; phone: string };
-    driver: { name: string } | null;
+    driver: { id: string; name: string } | null;
     address: { area: string };
 }
 
@@ -29,6 +31,10 @@ export default function OperationsOrdersPage() {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [statusFilter, setStatusFilter] = useState('');
+
+    // Driver Assignment State
+    const [driverModalOpen, setDriverModalOpen] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
     const fetchOrders = async () => {
         setLoading(true);
@@ -71,6 +77,30 @@ export default function OperationsOrdersPage() {
         }
     };
 
+    const openDriverModal = (order: Order) => {
+        setSelectedOrder(order);
+        setDriverModalOpen(true);
+    };
+
+    const handleAssignDriver = async (driverId: string) => {
+        if (!selectedOrder) return;
+
+        try {
+            const res = await fetch(`/api/orders/${selectedOrder.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ driverId }),
+            });
+
+            if (res.ok) {
+                // Refresh orders
+                fetchOrders();
+            }
+        } catch (error) {
+            console.error('Error assigning driver:', error);
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -91,8 +121,8 @@ export default function OperationsOrdersPage() {
                             key={status}
                             onClick={() => { setStatusFilter(status); setPage(1); }}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${statusFilter === status
-                                    ? 'bg-primary text-secondary'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                ? 'bg-primary text-secondary'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                 }`}
                         >
                             {status ? translateOrderStatus(status) : 'الكل'}
@@ -137,6 +167,32 @@ export default function OperationsOrdersPage() {
                                         </div>
                                         <div>
                                             <span className="text-gray-400">{formatRelativeTime(order.createdAt)}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-4 flex items-center gap-4 border-t border-gray-100 pt-3">
+                                        {/* Driver Info/Assignment */}
+                                        <div className="flex items-center gap-2">
+                                            {order.driver ? (
+                                                <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+                                                    <Truck className="w-4 h-4 text-gray-500" />
+                                                    <span className="text-sm font-medium">{order.driver.name}</span>
+                                                    <button
+                                                        onClick={() => openDriverModal(order)}
+                                                        className="text-xs text-primary hover:underline mr-1"
+                                                    >
+                                                        (تغيير)
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={() => openDriverModal(order)}
+                                                    className="flex items-center gap-2 bg-primary/5 text-primary px-3 py-1.5 rounded-lg hover:bg-primary/10 transition-colors text-sm font-medium"
+                                                >
+                                                    <UserPlus className="w-4 h-4" />
+                                                    تعيين سائق
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -194,6 +250,16 @@ export default function OperationsOrdersPage() {
                         </div>
                     )}
                 </div>
+            )}
+
+            {selectedOrder && (
+                <DriverAssignmentModal
+                    isOpen={driverModalOpen}
+                    onClose={() => setDriverModalOpen(false)}
+                    onAssign={handleAssignDriver}
+                    currentDriverId={selectedOrder.driver?.id}
+                    orderId={selectedOrder.id}
+                />
             )}
         </div>
     );

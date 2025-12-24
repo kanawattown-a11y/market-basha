@@ -21,12 +21,14 @@ export async function GET(request: NextRequest) {
         const limit = parseInt(searchParams.get('limit') || '20');
         const role = searchParams.get('role');
         const status = searchParams.get('status');
+        const isAvailable = searchParams.get('isAvailable');
         const search = searchParams.get('search');
 
         const where: Record<string, unknown> = {};
 
         if (role) where.role = role;
         if (status) where.status = status;
+        if (isAvailable !== null) where.isAvailable = isAvailable === 'true';
         if (search) {
             where.OR = [
                 { name: { contains: search, mode: 'insensitive' } },
