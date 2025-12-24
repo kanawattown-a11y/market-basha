@@ -62,7 +62,7 @@ export async function createAndSendNotification(
             type,
             title,
             message,
-            data: data || {},
+            data: data as object | undefined,
         },
     });
 
