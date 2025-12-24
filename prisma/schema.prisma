@@ -78,6 +78,8 @@ model User {
   vehiclePlate  String?
   isAvailable   Boolean    @default(true)
   
+  areNotificationsEnabled Boolean @default(true) // Added notification setting
+
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
   lastLoginAt   DateTime?

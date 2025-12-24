@@ -11,7 +11,7 @@ import CartSidebar from '@/components/CartSidebar';
 export default function FavoritesPage() {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
-    const [cart, setCart] = useState<{ id: string; quantity: number }[]>([]);
+    const [cart, setCart] = useState<any[]>([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
 
     // Cart Logic (Duplicated for now, ideally extracted to context)
@@ -28,7 +28,7 @@ export default function FavoritesPage() {
         if (existing) {
             existing.quantity += 1;
         } else {
-            newCart.push({ id: product.id, quantity: 1 });
+            newCart.push({ ...product, quantity: 1 } as any);
         }
         setCart(newCart);
         localStorage.setItem('cart', JSON.stringify(newCart));
@@ -53,27 +53,7 @@ export default function FavoritesPage() {
         window.dispatchEvent(new Event('storage'));
     };
 
-    const cartItems = cart.map(item => {
-        const product = products.find(p => p.id === item.id);
-        // Note: If product not in favorites search, we might miss details.
-        // For partial implementation, we might need to fetch cart details separately if not in current view
-        // But for this page, we assume we might only see favorites.
-        // Actually, CartSidebar usually needs full product details.
-        // If the cart has items NOT in favorites, they will be missing details if we only search in `products`.
-        // Ideally CartSidebar fetches its own details or we have a global product store.
-        // For MVP, we pass what we have. If missing, CartSidebar handles it gracefully?
-        // Let's check CartSidebar. It takes `CartItem extends Product`.
-        // So we need full product details for cart items.
-        // If we only fetch favorites, cart items not in favorites won't display correctly in sidebar on this page.
-        // We will leave this as a known limitation for now or fetch all cart items details?
-        // Let's just pass what we have and maybe ignore missing ones or show loading?
-        // Real implementation should fetch cart products by IDs too.
-
-        // For now, let's just make it work for items that ARE in favorites, 
-        // or simplistic approach: The cart sidebar in this page might look broken for non-favorite items.
-        // Correct fix: Fetch cart items details too.
-        return product ? { ...product, quantity: item.quantity } : null;
-    }).filter(Boolean) as any[]; // Cast to any to avoid strict type mismatch if product missing
+    const cartItems = cart;
 
     // Fetch Favorites
     useEffect(() => {

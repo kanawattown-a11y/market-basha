@@ -88,13 +88,17 @@ function ProductsContent() {
         window.dispatchEvent(new Event('storage'));
     };
 
-    const addToCart = (productId: string) => {
+
+
+    const addToCart = (product: Product) => {
         const newCart = [...cart];
-        const existing = newCart.find(item => item.id === productId);
+        const existing = newCart.find(item => item.id === product.id);
         if (existing) {
             existing.quantity += 1;
+            // Update details just in case
+            // existing.name = product.name; ...
         } else {
-            newCart.push({ id: productId, quantity: 1 });
+            newCart.push({ ...product, quantity: 1 });
         }
         setCart(newCart);
         localStorage.setItem('cart', JSON.stringify(newCart));
@@ -102,16 +106,8 @@ function ProductsContent() {
         setIsCartOpen(true);
     };
 
-    // Calculate cart items with product details
-    // Note: We need full product details for CartSidebar.
-    // In this page we have `products`, so we can try to find them there.
-    // But cart might have items not in current page list.
-    // Ideally fetch cart details. For MVP, we use what we have or placeholder.
-    const cartItems = cart.map(item => {
-        const product = products.find(p => p.id === item.id);
-        // Fallback if product not found in current list (simplistic)
-        return product ? { ...product, quantity: item.quantity } : null;
-    }).filter(Boolean) as any[];
+    // Cart items are now self-contained in state
+    const cartItems = cart;
 
 
 
@@ -359,7 +355,7 @@ function ProductsContent() {
                                                         <span className="text-xs text-gray-400 mr-1">/{product.unit}</span>
                                                     </div>
                                                     <button
-                                                        onClick={() => addToCart(product.id)}
+                                                        onClick={() => addToCart(product)}
                                                         disabled={product.stock === 0}
                                                         className="w-9 h-9 bg-primary hover:bg-primary-600 text-secondary rounded-full flex items-center justify-center transition-colors disabled:opacity-50"
                                                     >

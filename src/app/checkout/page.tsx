@@ -52,14 +52,12 @@ export default function CheckoutPage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Load cart from localStorage
-                const savedCart = localStorage.getItem('cart');
-                if (savedCart) {
-                    setCartItems(JSON.parse(savedCart));
-                }
+                // Fetch addresses and service areas in parallel
+                const [addressesRes, areasRes] = await Promise.all([
+                    fetch('/api/addresses'),
+                    fetch('/api/service-areas?active=true')
+                ]);
 
-                // Fetch addresses
-                const addressesRes = await fetch('/api/addresses');
                 if (addressesRes.ok) {
                     const data = await addressesRes.json();
                     setAddresses(data.addresses);
@@ -69,11 +67,34 @@ export default function CheckoutPage() {
                     }
                 }
 
-                // Fetch service areas
-                const areasRes = await fetch('/api/service-areas?active=true');
                 if (areasRes.ok) {
                     const data = await areasRes.json();
                     setServiceAreas(data.areas);
+                }
+
+                // Process Cart
+                const savedCart = localStorage.getItem('cart');
+                if (savedCart) {
+                    const parsedCart = JSON.parse(savedCart);
+                    if (parsedCart.length > 0) {
+                        // Extract IDs and Quantity map
+                        const cartMap = new Map(parsedCart.map((item: any) => [item.id, item.quantity]));
+                        const ids = Array.from(cartMap.keys());
+
+                        // Fetch Fresh Product Details
+                        const productsRes = await fetch(`/api/products?ids=${ids.join(',')}&limit=${ids.length}`);
+                        if (productsRes.ok) {
+                            const data = await productsRes.json();
+                            const products = data.products;
+
+                            // Merge fresh details with cart quantity
+                            const mergedCart = products.map((p: any) => ({
+                                ...p,
+                                quantity: cartMap.get(p.id) || 1
+                            }));
+                            setCartItems(mergedCart);
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
