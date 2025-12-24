@@ -142,6 +142,7 @@ model Category {
   nameEn      String?
   description String?
   image       String?
+  banner      String? // New field for banner image URL
   sortOrder   Int       @default(0)
   isActive    Boolean   @default(true)
   

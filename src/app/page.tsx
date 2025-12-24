@@ -125,11 +125,17 @@ function HeroCarousel({ offers }: { offers: Offer[] }) {
                     ))}
                 </div>
             ) : (
-                <div className="w-full h-full relative overflow-hidden bg-primary">
-                    <div className="absolute inset-0 bg-[url('/logo.svg')] bg-center bg-no-repeat opacity-10 scale-150 animate-pulse"></div>
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary-500 to-secondary-900/20"></div>
-                    <div className="absolute inset-0 flex items-center justify-center text-center z-10 p-4">
-                        <div className="animate-float">
+                <div className="w-full h-full relative overflow-hidden">
+                    <Image
+                        src="/hero-pattern.png"
+                        alt="Hero Background"
+                        fill
+                        className="object-cover"
+                        priority
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent"></div>
+                    <div className="absolute inset-0 flex items-center justify-start text-right z-10 p-8 md:p-16">
+                        <div className="animate-float max-w-2xl">
                             <h1 className="text-5xl md:text-7xl font-black text-white mb-6 drop-shadow-xl">ماركت باشا</h1>
                             <p className="text-2xl md:text-3xl text-white/90 font-medium">تسوق بذكاء ..👑</p>
                         </div>

@@ -70,6 +70,7 @@ export const categorySchema = z.object({
     sortOrder: z.number().int().default(0),
     isActive: z.boolean().default(true),
     image: z.string().optional().nullable(),
+    banner: z.string().optional().nullable(),
 });
 
 // العنوان

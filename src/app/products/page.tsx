@@ -33,6 +33,7 @@ interface Product {
 interface Category {
     id: string;
     name: string;
+    banner: string | null;
     _count: { products: number };
 }
 
@@ -139,6 +140,8 @@ function ProductsContent() {
         localStorage.setItem('cart', JSON.stringify(newCart));
     };
 
+    const selectedCategoryData = categories.find(c => c.id === selectedCategory);
+
     return (
         <div className="min-h-screen bg-gray-50">
             <Header />
@@ -149,7 +152,28 @@ function ProductsContent() {
                     <Link href="/" className="hover:text-primary">الرئيسية</Link>
                     <ChevronLeft className="w-4 h-4" />
                     <span className="text-secondary-800 font-medium">المنتجات</span>
+                    {selectedCategoryData && (
+                        <>
+                            <ChevronLeft className="w-4 h-4" />
+                            <span className="text-primary font-medium">{selectedCategoryData.name}</span>
+                        </>
+                    )}
                 </div>
+
+                {/* Category Banner */}
+                {selectedCategoryData?.banner && (
+                    <div className="w-full h-48 md:h-64 rounded-2xl overflow-hidden mb-8 relative shadow-lg">
+                        <Image
+                            src={selectedCategoryData.banner}
+                            alt={selectedCategoryData.name}
+                            fill
+                            className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
+                            <h2 className="text-3xl font-bold text-white mb-2">{selectedCategoryData.name}</h2>
+                        </div>
+                    </div>
+                )}
 
                 <div className="flex gap-6">
                     {/* Sidebar Filters - Desktop */}

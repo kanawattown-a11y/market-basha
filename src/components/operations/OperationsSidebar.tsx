@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
     LayoutDashboard,
@@ -50,8 +51,8 @@ export default function OperationsSidebar({ user }: OperationsSidebarProps) {
             {/* Logo */}
             <div className="p-4 border-b border-gray-700">
                 <Link href="/operations" className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-                        <span className="text-secondary font-bold text-xl">م</span>
+                    <div className="relative w-10 h-10 flex-shrink-0">
+                        <Image src="/logo.svg" alt="Market Basha" fill className="object-contain" />
                     </div>
                     <div>
                         <span className="font-bold text-white text-lg">ماركت باشا</span>

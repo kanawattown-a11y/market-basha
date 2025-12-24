@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, LogIn, Phone, Mail, Lock } from 'lucide-react';
 
@@ -57,8 +58,8 @@ export default function LoginPage() {
                 {/* Logo */}
                 <div className="text-center mb-8">
                     <Link href="/" className="inline-flex items-center gap-2">
-                        <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/30">
-                            <span className="text-secondary font-bold text-3xl">م</span>
+                        <div className="relative w-20 h-20">
+                            <Image src="/logo.svg" alt="Market Basha" fill className="object-contain" priority />
                         </div>
                     </Link>
                     <h1 className="text-3xl font-bold text-secondary-800 mt-4">تسجيل الدخول</h1>

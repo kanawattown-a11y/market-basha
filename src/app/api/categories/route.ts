@@ -63,6 +63,8 @@ export async function POST(request: NextRequest) {
                 parentId: data.parentId,
                 sortOrder: data.sortOrder,
                 isActive: data.isActive,
+                image: data.image,
+                banner: data.banner,
             },
         });
 

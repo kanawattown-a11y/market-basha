@@ -7,6 +7,7 @@ interface Category {
     id: string;
     name: string;
     image: string | null;
+    banner: string | null;
     sortOrder: number;
     isActive: boolean;
     _count: { products: number };
@@ -17,7 +18,7 @@ export default function AdminCategoriesPage() {
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [formData, setFormData] = useState({ name: '', sortOrder: 0, isActive: true });
+    const [formData, setFormData] = useState({ name: '', banner: '', sortOrder: 0, isActive: true });
 
     const fetchCategories = async () => {
         try {
@@ -54,7 +55,7 @@ export default function AdminCategoriesPage() {
                 fetchCategories();
                 setShowForm(false);
                 setEditingId(null);
-                setFormData({ name: '', sortOrder: 0, isActive: true });
+                setFormData({ name: '', banner: '', sortOrder: 0, isActive: true });
             }
         } catch (error) {
             console.error('Error saving category:', error);
@@ -62,7 +63,7 @@ export default function AdminCategoriesPage() {
     };
 
     const handleEdit = (cat: Category) => {
-        setFormData({ name: cat.name, sortOrder: cat.sortOrder, isActive: cat.isActive });
+        setFormData({ name: cat.name, banner: cat.banner || '', sortOrder: cat.sortOrder, isActive: cat.isActive });
         setEditingId(cat.id);
         setShowForm(true);
     };
@@ -86,7 +87,7 @@ export default function AdminCategoriesPage() {
                     <p className="text-sm text-gray-500">إضافة وتعديل أقسام المنتجات</p>
                 </div>
                 <button
-                    onClick={() => { setShowForm(true); setEditingId(null); setFormData({ name: '', sortOrder: 0, isActive: true }); }}
+                    onClick={() => { setShowForm(true); setEditingId(null); setFormData({ name: '', banner: '', sortOrder: 0, isActive: true }); }}
                     className="btn btn-primary w-full sm:w-auto"
                 >
                     <Plus className="w-5 h-5" />
@@ -100,7 +101,7 @@ export default function AdminCategoriesPage() {
                         {editingId ? 'تعديل القسم' : 'إضافة قسم جديد'}
                     </h3>
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">اسم القسم</label>
                                 <input
@@ -111,6 +112,18 @@ export default function AdminCategoriesPage() {
                                     required
                                 />
                             </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">رابط البانر</label>
+                                <input
+                                    type="url"
+                                    value={formData.banner}
+                                    onChange={(e) => setFormData({ ...formData, banner: e.target.value })}
+                                    className="input"
+                                    placeholder="https://example.com/image.jpg"
+                                />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">ترتيب العرض</label>
                                 <input

@@ -8,6 +8,7 @@ interface Category {
     id: string;
     name: string;
     description: string | null;
+    banner: string | null;
     sortOrder: number;
     isActive: boolean;
     _count: { products: number };
@@ -18,7 +19,7 @@ export default function OperationsCategoriesPage() {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editCategory, setEditCategory] = useState<Category | null>(null);
-    const [formData, setFormData] = useState({ name: '', description: '', sortOrder: 0, isActive: true });
+    const [formData, setFormData] = useState({ name: '', description: '', banner: '', sortOrder: 0, isActive: true });
 
     const fetchCategories = async () => {
         try {
@@ -52,7 +53,7 @@ export default function OperationsCategoriesPage() {
 
             setShowModal(false);
             setEditCategory(null);
-            setFormData({ name: '', description: '', sortOrder: 0, isActive: true });
+            setFormData({ name: '', description: '', banner: '', sortOrder: 0, isActive: true });
             fetchCategories();
         } catch (error) {
             console.error('Error saving category:', error);
@@ -74,6 +75,7 @@ export default function OperationsCategoriesPage() {
         setFormData({
             name: category.name,
             description: category.description || '',
+            banner: category.banner || '',
             sortOrder: category.sortOrder,
             isActive: category.isActive,
         });
@@ -88,7 +90,7 @@ export default function OperationsCategoriesPage() {
                     <p className="text-gray-500">إدارة أقسام المنتجات</p>
                 </div>
                 <button
-                    onClick={() => { setEditCategory(null); setFormData({ name: '', description: '', sortOrder: 0, isActive: true }); setShowModal(true); }}
+                    onClick={() => { setEditCategory(null); setFormData({ name: '', description: '', banner: '', sortOrder: 0, isActive: true }); setShowModal(true); }}
                     className="btn btn-primary"
                 >
                     <Plus className="w-5 h-5" />
@@ -175,6 +177,16 @@ export default function OperationsCategoriesPage() {
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                     className="input"
                                     required
+                                />
+                            </div>
+                            <div>
+                                <label className="label">رابط البانر</label>
+                                <input
+                                    type="url"
+                                    value={formData.banner}
+                                    onChange={(e) => setFormData({ ...formData, banner: e.target.value })}
+                                    className="input"
+                                    placeholder="https://"
                                 />
                             </div>
                             <div>
