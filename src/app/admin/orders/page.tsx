@@ -63,6 +63,9 @@ export default function AdminOrdersPage() {
 
     useEffect(() => {
         fetchOrders();
+        // Poll for updates every 5 seconds
+        const interval = setInterval(fetchOrders, 5000);
+        return () => clearInterval(interval);
     }, [page, statusFilter, search]);
 
     const openDriverModal = (order: Order) => {

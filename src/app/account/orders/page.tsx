@@ -1,31 +1,58 @@
-import { prisma } from '@/lib/prisma';
-import { getSession } from '@/lib/auth';
-import { formatCurrency, formatDateTime, translateOrderStatus, getOrderStatusColor } from '@/lib/utils';
-import { ShoppingBag, Eye } from 'lucide-react';
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
+import { ShoppingBag, Eye } from 'lucide-react';
+import { formatCurrency, formatDateTime, translateOrderStatus, getOrderStatusColor } from '@/lib/utils';
 
-export const dynamic = 'force-dynamic';
+// We need an interface for the Order since we are fetching it
+interface OrderItem {
+    id: string;
+    quantity: number;
+    product: { name: string };
+}
 
-export default async function OrdersPage() {
-    const session = await getSession();
+interface Order {
+    id: string;
+    orderNumber: string;
+    status: string;
+    total: number;
+    createdAt: string;
+    items: OrderItem[];
+}
 
-    if (!session) {
-        redirect('/login');
+export default function OrdersPage() {
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchOrders = async () => {
+        try {
+            const res = await fetch('/api/orders');
+            if (res.ok) {
+                const data = await res.json();
+                setOrders(data.orders);
+            }
+        } catch (error) {
+            console.error('Error fetching orders:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchOrders();
+        // Poll every 10 seconds for users
+        const interval = setInterval(fetchOrders, 10000);
+        return () => clearInterval(interval);
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="text-center py-12">
+                <div className="spinner mx-auto"></div>
+            </div>
+        );
     }
-
-    const orders = await prisma.order.findMany({
-        where: { customerId: session.id },
-        include: {
-            items: {
-                include: {
-                    product: { select: { name: true } },
-                },
-            },
-        },
-        orderBy: { createdAt: 'desc' },
-        take: 20,
-    });
 
     return (
         <div className="space-y-6">
@@ -46,7 +73,7 @@ export default async function OrdersPage() {
                             <div className="p-4 border-b border-gray-100 flex items-center justify-between">
                                 <div>
                                     <p className="font-bold text-secondary-800">#{order.orderNumber}</p>
-                                    <p className="text-sm text-gray-500">{formatDateTime(order.createdAt.toISOString())}</p>
+                                    <p className="text-sm text-gray-500">{formatDateTime(order.createdAt)}</p>
                                 </div>
                                 <span className={`badge ${getOrderStatusColor(order.status)}`}>
                                     {translateOrderStatus(order.status)}

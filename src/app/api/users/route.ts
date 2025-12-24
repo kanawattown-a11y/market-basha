@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     try {
         const user = await getSession();
 
-        if (!user || user.role !== 'ADMIN') {
+        if (!user || !['ADMIN', 'OPERATIONS'].includes(user.role)) {
             return NextResponse.json(
                 { message: 'غير مصرح لك بهذا الإجراء' },
                 { status: 403 }

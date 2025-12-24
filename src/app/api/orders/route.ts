@@ -33,7 +33,13 @@ export async function GET(request: NextRequest) {
         }
         // ADMIN and OPERATIONS can see all orders
 
-        if (status) where.status = status;
+        if (status) {
+            if (status.includes(',')) {
+                where.status = { in: status.split(',') };
+            } else {
+                where.status = status;
+            }
+        }
 
         const [orders, total] = await Promise.all([
             prisma.order.findMany({

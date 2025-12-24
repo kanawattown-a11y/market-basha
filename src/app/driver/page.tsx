@@ -20,21 +20,25 @@ export default function DriverOrdersPage() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchOrders = async () => {
-            try {
-                const res = await fetch('/api/orders?status=READY,OUT_FOR_DELIVERY&forDriver=true');
-                if (res.ok) {
-                    const data = await res.json();
-                    setOrders(data.orders);
-                }
-            } catch (error) {
-                console.error('Error fetching orders:', error);
-            } finally {
-                setLoading(false);
+    const fetchOrders = async () => {
+        try {
+            const res = await fetch('/api/orders?status=READY,OUT_FOR_DELIVERY&forDriver=true');
+            if (res.ok) {
+                const data = await res.json();
+                setOrders(data.orders);
             }
-        };
+        } catch (error) {
+            console.error('Error fetching orders:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchOrders();
+        // Poll every 5 seconds
+        const interval = setInterval(fetchOrders, 5000);
+        return () => clearInterval(interval);
     }, []);
 
     if (loading) {
@@ -69,8 +73,8 @@ export default function DriverOrdersPage() {
                                 <div>
                                     <span className="font-bold text-secondary-800 text-lg">#{order.orderNumber}</span>
                                     <span className={`badge mr-2 ${order.status === 'OUT_FOR_DELIVERY'
-                                            ? 'bg-blue-100 text-blue-700'
-                                            : 'bg-green-100 text-green-700'
+                                        ? 'bg-blue-100 text-blue-700'
+                                        : 'bg-green-100 text-green-700'
                                         }`}>
                                         {order.status === 'OUT_FOR_DELIVERY' ? 'في الطريق' : 'جاهز'}
                                     </span>
