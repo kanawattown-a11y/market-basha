@@ -193,8 +193,8 @@ export default function CheckoutPage() {
                 <div className="container mx-auto px-4 py-4">
                     <div className="flex items-center gap-4">
                         <Link href="/" className="flex items-center gap-2">
-                            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-                                <span className="text-secondary font-bold text-xl">م</span>
+                            <div className="w-12 h-12 relative">
+                                <img src="/logo.svg" alt="ماركت باشا" className="w-full h-full object-contain" />
                             </div>
                             <span className="font-bold text-secondary-800 hidden sm:block">ماركت باشا</span>
                         </Link>

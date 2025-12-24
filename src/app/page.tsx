@@ -106,7 +106,7 @@ function HeroCarousel({ offers }: { offers: Offer[] }) {
                                     priority
                                 />
                             )}
-                            <div className="absolute inset-0 z-20 flex items-center p-8 md:p-16">
+                            <div className="absolute inset-0 z-20 flex items-center justify-between p-8 md:p-16 container mx-auto">
                                 <div className="max-w-2xl animate-float">
                                     <span className="inline-block bg-white text-secondary-900 px-4 py-1.5 rounded-full text-sm font-bold mb-6 shadow-lg">
                                         {offer.discountType === 'percentage' ? `🔥 خصم ${offer.discountValue}%` : `🔥 خصم ${formatCurrency(Number(offer.discountValue))}`}
@@ -122,6 +122,10 @@ function HeroCarousel({ offers }: { offers: Offer[] }) {
                                         <ArrowLeft className="w-5 h-5 mr-2" />
                                     </Link>
                                 </div>
+                                {/* Hero Logo - Visible on all screens, small on mobile */}
+                                <div className="w-20 h-20 lg:w-80 lg:h-80 relative animate-float delay-100 flex-shrink-0 ml-4">
+                                    <Image src="/logo.svg" alt="Market Basha" fill className="object-contain drop-shadow-2xl" />
+                                </div>
                             </div>
                         </div>
                     ))}
@@ -136,17 +140,27 @@ function HeroCarousel({ offers }: { offers: Offer[] }) {
                         priority
                     />
                     <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent"></div>
-                    <div className="absolute inset-0 flex items-center justify-start text-right z-10 p-8 md:p-16">
+                    <div className="absolute inset-0 flex items-center justify-between text-right z-10 p-8 md:p-16 container mx-auto">
                         <div className="animate-float max-w-2xl">
-                            <h1 className="text-5xl md:text-7xl font-black text-white mb-6 drop-shadow-xl">ماركت باشا</h1>
-                            <p className="text-2xl md:text-3xl text-white/90 font-medium">تسوق بذكاء ..👑</p>
+                            <span className="inline-block bg-primary text-secondary-900 px-4 py-1.5 rounded-full text-sm font-bold mb-6 shadow-lg">
+                                تسوق أذكى، مش أصعب
+                            </span>
+                            <h1 className="text-5xl md:text-7xl font-black text-white mb-6 leading-tight drop-shadow-lg">
+                                كل طلبات البيت <span className="text-primary">واصلة لعندك</span>
+                            </h1>
+                            <p className="text-gray-200 text-lg md:text-xl mb-8 max-w-lg leading-relaxed">
+                                أفضل المنتجات بأفضل الأسعار، توصيل سريع ودفع عند الاستلام.
+                            </p>
+                            <Link href="/products" className="btn btn-primary btn-lg shadow-xl hover:scale-105 transition-transform">
+                                تسوق الآن
+                                <ArrowLeft className="w-5 h-5 mr-2" />
+                            </Link>
+                        </div>
+                        {/* Hero Logo - Visible on all screens, small on mobile */}
+                        <div className="w-24 h-24 lg:w-96 lg:h-96 relative animate-float delay-100 opacity-90 flex-shrink-0 ml-4">
+                            <Image src="/logo.svg" alt="Market Basha" fill className="object-contain drop-shadow-2xl" />
                         </div>
                     </div>
-                </div>
-            )}
-
-            {offers.length > 1 && (
-                <>
                     <button
                         onClick={prevSlide}
                         className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-md border border-white/30 rounded-full flex items-center justify-center text-white hover:bg-white hover:text-secondary-900 transition-all z-30"
@@ -160,8 +174,9 @@ function HeroCarousel({ offers }: { offers: Offer[] }) {
                         <ChevronRight className="w-6 h-6" />
                     </button>
                 </>
-            )}
-        </div>
+            )
+            }
+        </div >
     );
 }
 

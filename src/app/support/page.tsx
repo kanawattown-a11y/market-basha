@@ -59,11 +59,11 @@ export default function SupportPage() {
             <header className="bg-white border-b border-gray-200">
                 <div className="container mx-auto px-4 py-4">
                     <div className="flex items-center justify-between">
-                        <Link href="/" className="flex items-center gap-2">
-                            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-                                <span className="text-secondary font-bold text-xl">م</span>
+                        <Link href="/" className="flex items-center gap-2 group">
+                            <div className="w-10 h-10 md:w-12 md:h-12 relative transition-transform duration-300 group-hover:scale-105">
+                                <img src="/logo.svg" alt="ماركت باشا" className="w-full h-full object-contain" />
                             </div>
-                            <span className="font-bold text-secondary-800">ماركت باشا</span>
+                            <span className="font-bold text-secondary-800 text-xl tracking-tight group-hover:text-primary transition-colors">ماركت باشا</span>
                         </Link>
                     </div>
                 </div>

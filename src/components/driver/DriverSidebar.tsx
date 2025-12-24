@@ -44,8 +44,8 @@ export default function DriverSidebar({ user }: DriverSidebarProps) {
             {/* Logo */}
             <div className="p-4 border-b border-gray-700">
                 <Link href="/driver" className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-                        <span className="text-secondary font-bold text-xl">م</span>
+                    <div className="w-10 h-10 relative">
+                        <img src="/logo.svg" alt="ماركت باشا" className="w-full h-full object-contain" />
                     </div>
                     <div>
                         <span className="font-bold text-white text-lg">ماركت باشا</span>
