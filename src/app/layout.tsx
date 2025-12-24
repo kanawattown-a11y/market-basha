@@ -14,7 +14,11 @@ export const metadata: Metadata = {
     keywords: 'ماركت باشا, تسوق, سوريا, توصيل, بقالة, سوبرماركت',
     authors: [{ name: 'Market Basha' }],
     icons: {
-        icon: '/favicon.ico',
+        icon: [
+            { url: '/favicon.svg', type: 'image/svg+xml' },
+            { url: '/favicon.ico', sizes: 'any' } // Fallback
+        ],
+        apple: '/favicon.svg',
     },
     manifest: '/manifest.json',
 };

@@ -153,13 +153,13 @@ export default function Header({ className }: HeaderProps) {
 
                                 {showUserMenu && (
                                     <>
-                                        <div className="fixed inset-0 z-10" onClick={() => setShowUserMenu(false)} />
-                                        <div className="absolute left-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 py-2 w-48 z-20">
+                                        <div className="fixed inset-0 z-40 bg-black/5" onClick={() => setShowUserMenu(false)} />
+                                        <div className="absolute left-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 py-2 w-48 z-50">
                                             {menuItems.map((item) => (
                                                 <Link
                                                     key={item.href}
                                                     href={item.href}
-                                                    className="dropdown-item flex items-center gap-2"
+                                                    className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors"
                                                     onClick={() => setShowUserMenu(false)}
                                                 >
                                                     <item.icon className="w-4 h-4" />
@@ -169,7 +169,7 @@ export default function Header({ className }: HeaderProps) {
                                             <hr className="my-2" />
                                             <button
                                                 onClick={handleLogout}
-                                                className="dropdown-item flex items-center gap-2 text-red-500 w-full"
+                                                className="flex items-center gap-2 px-4 py-2 text-red-500 w-full hover:bg-red-50 transition-colors"
                                             >
                                                 <LogOut className="w-4 h-4" />
                                                 تسجيل الخروج
