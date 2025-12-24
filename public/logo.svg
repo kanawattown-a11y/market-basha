@@ -3,10 +3,10 @@
   <path d="M120 180 H392 L380 440 H132 L120 180 Z" fill="#FEC00F" stroke="#FEC00F" stroke-width="20" stroke-linejoin="round"/>
   
   <!-- Mustache Handle -->
-  <!-- Left Side Mustache -->
-  <path d="M256 180 C 240 130, 180 120, 160 150 C 150 165, 170 170, 180 160 C 200 140, 240 160, 256 180" stroke="white" stroke-width="25" stroke-linecap="round" fill="none"/>
-  <!-- Right Side Mustache -->
-  <path d="M256 180 C 272 130, 332 120, 352 150 C 362 165, 342 170, 332 160 C 312 140, 272 160, 256 180" stroke="white" stroke-width="25" stroke-linecap="round" fill="none"/>
+  <!-- Left Side Mustache - Shifted down by 130px to be in middle of bag (310) -->
+  <path d="M256 310 C 240 260, 180 250, 160 280 C 150 295, 170 300, 180 290 C 200 270, 240 290, 256 310" stroke="white" stroke-width="25" stroke-linecap="round" fill="none"/>
+  <!-- Right Side Mustache - Shifted down by 130px -->
+  <path d="M256 310 C 272 260, 332 250, 352 280 C 362 295, 342 300, 332 290 C 312 270, 272 290, 256 310" stroke="white" stroke-width="25" stroke-linecap="round" fill="none"/>
 
   <!-- Subtle Eyes to complete the "Face" look (Optional, maybe just the handle is enough) -->
   <!-- <circle cx="200" cy="250" r="15" fill="white"/> -->
