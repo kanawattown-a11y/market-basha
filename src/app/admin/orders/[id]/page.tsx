@@ -13,9 +13,11 @@ import {
     Truck,
     CheckCircle,
     XCircle,
-    Printer
+    Printer,
+    UserPlus
 } from 'lucide-react';
 import { formatCurrency, formatDateTime, translateOrderStatus, getOrderStatusColor } from '@/lib/utils';
+import DriverAssignmentModal from '@/components/admin/DriverAssignmentModal';
 
 interface OrderDetail {
     id: string;
@@ -40,7 +42,7 @@ export default function AdminOrderDetailPage() {
     const [order, setOrder] = useState<OrderDetail | null>(null);
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
-    const [drivers, setDrivers] = useState<{ id: string; name: string }[]>([]);
+    const [driverModalOpen, setDriverModalOpen] = useState(false);
 
     const fetchOrder = async () => {
         if (!id) return;
@@ -57,21 +59,10 @@ export default function AdminOrderDetailPage() {
         }
     };
 
-    const fetchDrivers = async () => {
-        try {
-            const res = await fetch('/api/users?role=DRIVER&status=APPROVED');
-            if (res.ok) {
-                const data = await res.json();
-                setDrivers(data.users);
-            }
-        } catch (error) {
-            console.error('Error fetching drivers:', error);
-        }
-    };
-
     useEffect(() => {
         fetchOrder();
-        fetchDrivers();
+        const interval = setInterval(fetchOrder, 5000);
+        return () => clearInterval(interval);
     }, [id]);
 
     const updateOrder = async (data: { status?: string; driverId?: string }) => {
@@ -87,6 +78,22 @@ export default function AdminOrderDetailPage() {
             console.error('Error updating order:', error);
         } finally {
             setUpdating(false);
+        }
+    };
+
+    const handleAssignDriver = async (driverId: string) => {
+        try {
+            const res = await fetch(`/api/orders/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ driverId }),
+            });
+
+            if (res.ok) {
+                fetchOrder();
+            }
+        } catch (error) {
+            console.error('Error assigning driver:', error);
         }
     };
 
@@ -229,21 +236,39 @@ export default function AdminOrderDetailPage() {
 
                     {/* Driver */}
                     <div className="card p-6">
-                        <h3 className="font-bold text-secondary-800 mb-4 flex items-center gap-2">
-                            <Truck className="w-5 h-5" />
-                            السائق
-                        </h3>
-                        <select
-                            value={order.driver?.id || ''}
-                            onChange={(e) => updateOrder({ driverId: e.target.value })}
-                            className="input"
-                            disabled={updating}
-                        >
-                            <option value="">اختر سائق</option>
-                            {drivers.map((driver) => (
-                                <option key={driver.id} value={driver.id}>{driver.name}</option>
-                            ))}
-                        </select>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-bold text-secondary-800 flex items-center gap-2">
+                                <Truck className="w-5 h-5" />
+                                السائق
+                            </h3>
+                            <button
+                                onClick={() => setDriverModalOpen(true)}
+                                className="text-sm text-primary hover:underline font-medium"
+                            >
+                                {order.driver ? 'تغيير السائق' : 'تعيين سائق'}
+                            </button>
+                        </div>
+
+                        {order.driver ? (
+                            <div>
+                                <p className="font-medium text-secondary-800">{order.driver.name}</p>
+                                <a href={`tel:${order.driver.phone}`} className="text-primary hover:underline text-sm flex items-center gap-1 mt-1">
+                                    <Phone className="w-4 h-4" />
+                                    {order.driver.phone}
+                                </a>
+                            </div>
+                        ) : (
+                            <div className="text-center py-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                                <p className="text-gray-500 text-sm mb-2">لم يتم تعيين سائق بعد</p>
+                                <button
+                                    onClick={() => setDriverModalOpen(true)}
+                                    className="btn btn-primary btn-sm"
+                                >
+                                    <UserPlus className="w-4 h-4" />
+                                    تعيين سائق الآن
+                                </button>
+                            </div>
+                        )}
                     </div>
 
                     {/* Actions */}
@@ -266,6 +291,14 @@ export default function AdminOrderDetailPage() {
                     </div>
                 </div>
             </div>
+
+            <DriverAssignmentModal
+                isOpen={driverModalOpen}
+                onClose={() => setDriverModalOpen(false)}
+                onAssign={handleAssignDriver}
+                currentDriverId={order.driver?.id}
+                orderId={order.id}
+            />
         </div>
     );
 }

@@ -51,6 +51,8 @@ export default function DriverOrderDetailPage() {
 
     useEffect(() => {
         fetchOrder();
+        const interval = setInterval(fetchOrder, 5000);
+        return () => clearInterval(interval);
     }, [id]);
 
     const updateStatus = async (status: string) => {
