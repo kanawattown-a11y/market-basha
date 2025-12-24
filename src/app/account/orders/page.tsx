@@ -3,12 +3,19 @@ import { getSession } from '@/lib/auth';
 import { formatCurrency, formatDateTime, translateOrderStatus, getOrderStatusColor } from '@/lib/utils';
 import { ShoppingBag, Eye } from 'lucide-react';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
+
+export const dynamic = 'force-dynamic';
 
 export default async function OrdersPage() {
     const session = await getSession();
 
+    if (!session) {
+        redirect('/login');
+    }
+
     const orders = await prisma.order.findMany({
-        where: { customerId: session!.id },
+        where: { customerId: session.id },
         include: {
             items: {
                 include: {

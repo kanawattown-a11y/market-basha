@@ -3,12 +3,19 @@ import { getSession } from '@/lib/auth';
 import { formatDateTime } from '@/lib/utils';
 import { User, Mail, Phone, Calendar, Edit } from 'lucide-react';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
+
+export const dynamic = 'force-dynamic';
 
 export default async function AccountPage() {
     const session = await getSession();
 
+    if (!session) {
+        redirect('/login');
+    }
+
     const user = await prisma.user.findUnique({
-        where: { id: session!.id },
+        where: { id: session.id },
         select: {
             id: true,
             name: true,

@@ -305,7 +305,7 @@ sudo systemctl restart nginx
 
 # SSL مجاني
 sudo apt install certbot python3-certbot-nginx -y
-sudo certbot --nginx -d YOUR_DOMAIN.com
+sudo certbot --nginx -d marketbasha.com
 ```
 
 ---
