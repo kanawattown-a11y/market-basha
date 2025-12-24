@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import {
     Search,
     Filter,
@@ -58,14 +58,17 @@ function ProductsContent() {
         }
     }, []);
 
+    const router = useRouter();
+    // Note: ensure useRouter is imported from next/navigation
+
     const fetchProducts = async () => {
         setLoading(true);
         try {
             const params = new URLSearchParams({
                 page: page.toString(),
                 limit: '12',
-                ...(search && { search }),
-                ...(selectedCategory && { category: selectedCategory }),
+                ...(searchParam ? { search: searchParam } : {}), // Use URL param
+                ...(selectedCategory ? { category: selectedCategory } : {}),
             });
 
             const res = await fetch(`/api/products?${params}`);
@@ -97,14 +100,31 @@ function ProductsContent() {
         fetchCategories();
     }, []);
 
+    // Sync input with URL
+    useEffect(() => {
+        if (searchParam !== null) {
+            setSearch(searchParam);
+        } else {
+            setSearch('');
+        }
+    }, [searchParam]);
+
+    // Fetch on params change
     useEffect(() => {
         fetchProducts();
-    }, [page, selectedCategory]);
+    }, [page, selectedCategory, searchParam]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         setPage(1);
-        fetchProducts();
+        // Push to URL
+        const params = new URLSearchParams(searchParams.toString());
+        if (search) {
+            params.set('search', search);
+        } else {
+            params.delete('search');
+        }
+        router.push(`/products?${params.toString()}`);
     };
 
     const addToCart = (productId: string) => {

@@ -131,7 +131,7 @@ function HeroCarousel({ offers }: { offers: Offer[] }) {
                     <div className="absolute inset-0 flex items-center justify-center text-center z-10 p-4">
                         <div className="animate-float">
                             <h1 className="text-5xl md:text-7xl font-black text-white mb-6 drop-shadow-xl">ماركت باشا</h1>
-                            <p className="text-2xl md:text-3xl text-white/90 font-medium">تسوق بذكاء .. تسوق باشا 👑</p>
+                            <p className="text-2xl md:text-3xl text-white/90 font-medium">تسوق بذكاء ..👑</p>
                         </div>
                     </div>
                 </div>
@@ -411,169 +411,8 @@ function CartSidebar({
     );
 }
 
-// Header
-function Header({
-    cartCount,
-    onCartClick,
-    user
-}: {
-    cartCount: number;
-    onCartClick: () => void;
-    user: { name: string; role: string } | null;
-}) {
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [searchValue, setSearchValue] = useState('');
-    const [showUserMenu, setShowUserMenu] = useState(false);
-
-    const handleLogout = async () => {
-        await fetch('/api/auth/logout', { method: 'POST' });
-        window.location.href = '/';
-    };
-
-    return (
-        <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm transition-all duration-300">
-            <div className="container mx-auto px-4">
-                <div className="flex items-center justify-between h-16 md:h-20 gap-4">
-                    {/* Logo */}
-                    <Link href="/" className="flex items-center gap-2 shrink-0 group">
-                        <div className="w-12 h-12 relative transition-transform duration-300 group-hover:scale-105">
-                            <img src="/logo.svg" alt="Logo" className="w-full h-full object-contain" />
-                        </div>
-                        <span className="text-xl font-black text-secondary-900 hidden sm:block tracking-tight group-hover:text-primary transition-colors">ماركت باشا</span>
-                    </Link>
-
-                    {/* Search - Desktop */}
-                    <div className="hidden md:flex flex-1 max-w-xl mx-8">
-                        <div className="relative w-full group">
-                            <input
-                                type="text"
-                                placeholder="ابحث عن منتجك المفضل..."
-                                value={searchValue}
-                                onChange={(e) => setSearchValue(e.target.value)}
-                                className="w-full px-5 py-2.5 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all"
-                            />
-                            <div className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-white rounded-xl shadow-sm group-focus-within:text-primary text-gray-400 transition-colors">
-                                <Search className="w-4 h-4" />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={onCartClick}
-                            className="relative p-2.5 hover:bg-gray-100 rounded-xl transition-all group"
-                        >
-                            <ShoppingCart className="w-6 h-6 text-secondary-600 group-hover:text-primary transition-colors" />
-                            {cartCount > 0 && (
-                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-secondary-900 text-xs font-bold rounded-full flex items-center justify-center shadow-sm animate-bounce-in">
-                                    {cartCount > 9 ? '9+' : cartCount}
-                                </span>
-                            )}
-                        </button>
-
-                        {user ? (
-                            <div className="relative">
-                                <button
-                                    onClick={() => setShowUserMenu(!showUserMenu)}
-                                    className="flex items-center gap-2 p-1.5 pr-3 hover:bg-gray-50 border border-transparent hover:border-gray-100 rounded-full transition-all"
-                                >
-                                    <div className="w-9 h-9 bg-gradient-to-br from-primary to-primary-600 rounded-full flex items-center justify-center shadow-sm text-white font-bold text-sm">
-                                        {user.name.charAt(0)}
-                                    </div>
-                                    <span className="hidden sm:block text-sm font-bold text-secondary-700">{user.name}</span>
-                                    <ChevronDown className="w-4 h-4 text-gray-400 hidden sm:block" />
-                                </button>
-
-                                {showUserMenu && (
-                                    <>
-                                        <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
-                                        <div className="absolute left-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-left">
-                                            <div className="p-3 border-b border-gray-50 bg-gray-50/50">
-                                                <p className="text-sm font-bold text-gray-900">{user.name}</p>
-                                                <p className="text-xs text-gray-500 truncate">{user.name}</p>
-                                            </div>
-                                            <div className="p-2">
-                                                <Link href={user.role === 'USER' ? '/account' : `/${user.role.toLowerCase()}`} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary rounded-xl transition-colors">
-                                                    <User className="w-4 h-4" />
-                                                    ملفي الشخصي
-                                                </Link>
-                                                <Link href="/favorites" className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary rounded-xl transition-colors">
-                                                    <Heart className="w-4 h-4" />
-                                                    المفضلة
-                                                </Link>
-                                                <Link href="/account/orders" className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary rounded-xl transition-colors">
-                                                    <Package className="w-4 h-4" />
-                                                    طلباتي
-                                                </Link>
-                                                <hr className="my-1 border-gray-100" />
-                                                <button onClick={handleLogout} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-xl transition-colors">
-                                                    <LogOut className="w-4 h-4" />
-                                                    تسجيل الخروج
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        ) : (
-                            <Link href="/login" className="btn btn-primary btn-sm px-6 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40">
-                                تسجيل الدخول
-                            </Link>
-                        )}
-
-                        <button
-                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                            className="md:hidden p-2 hover:bg-gray-100 rounded-xl"
-                        >
-                            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                        </button>
-                    </div>
-                </div>
-
-                {/* Search - Mobile */}
-                <div className="md:hidden pb-4">
-                    <div className="relative">
-                        <input
-                            type="text"
-                            placeholder="ابحث عن منتجات..."
-                            value={searchValue}
-                            onChange={(e) => setSearchValue(e.target.value)}
-                            className="w-full pl-4 pr-10 py-3 bg-gray-50 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-                        />
-                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    </div>
-                </div>
-            </div>
-
-            {/* Mobile Menu */}
-            {mobileMenuOpen && (
-                <div className="md:hidden fixed inset-0 top-[120px] bg-black/50 z-40 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)}>
-                    <div className="bg-white p-4 space-y-2 shadow-xl border-t border-gray-100" onClick={e => e.stopPropagation()}>
-                        <Link href="/" className="sidebar-link" onClick={() => setMobileMenuOpen(false)}>
-                            الرئيسية
-                        </Link>
-                        <Link href="/products" className="sidebar-link" onClick={() => setMobileMenuOpen(false)}>
-                            المنتجات
-                        </Link>
-                        <Link href="/categories" className="sidebar-link" onClick={() => setMobileMenuOpen(false)}>
-                            الأقسام
-                        </Link>
-                        <Link href="/offers" className="sidebar-link" onClick={() => setMobileMenuOpen(false)}>
-                            العروض
-                        </Link>
-                        <Link href="/favorites" className="sidebar-link" onClick={() => setMobileMenuOpen(false)}>
-                            المفضلة
-                        </Link>
-                        <Link href="/support" className="sidebar-link" onClick={() => setMobileMenuOpen(false)}>
-                            الدعم
-                        </Link>
-                    </div>
-                </div>
-            )}
-        </header>
-    );
-}
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 // Features Section
 function FeaturesSection() {
@@ -586,99 +425,20 @@ function FeaturesSection() {
 
     return (
         <section className="py-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {features.map((feature, index) => (
-                    <div key={index} className="card p-4 text-center">
-                        <div className="w-12 h-12 mx-auto mb-3 bg-primary/10 rounded-xl flex items-center justify-center">
-                            <feature.icon className="w-6 h-6 text-primary" />
+            <div className="container mx-auto px-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {features.map((feature, index) => (
+                        <div key={index} className="card p-4 text-center">
+                            <div className="w-12 h-12 mx-auto mb-3 bg-primary/10 rounded-xl flex items-center justify-center">
+                                <feature.icon className="w-6 h-6 text-primary" />
+                            </div>
+                            <h3 className="font-semibold text-secondary-800">{feature.title}</h3>
+                            <p className="text-sm text-gray-500">{feature.description}</p>
                         </div>
-                        <h3 className="font-semibold text-secondary-800">{feature.title}</h3>
-                        <p className="text-sm text-gray-500">{feature.description}</p>
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
         </section>
-    );
-}
-
-// Footer
-function Footer() {
-    return (
-        <footer className="bg-secondary-800 text-white py-12 mt-12">
-            <div className="container mx-auto px-4">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                    <div>
-                        <div className="flex items-center gap-2 mb-4">
-                            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-                                <span className="text-secondary font-bold text-xl">م</span>
-                            </div>
-                            <span className="text-xl font-bold">ماركت باشا</span>
-                        </div>
-                        <p className="text-gray-400">
-                            متجرك الإلكتروني للتسوق بسهولة وراحة. نوفر لك كل ما تحتاجه بأفضل الأسعار وأسرع توصيل.
-                        </p>
-                    </div>
-
-                    <div>
-                        <h4 className="font-bold mb-4">روابط سريعة</h4>
-                        <nav className="space-y-2">
-                            <Link href="/products" className="block text-gray-400 hover:text-primary transition-colors">
-                                المنتجات
-                            </Link>
-                            <Link href="/categories" className="block text-gray-400 hover:text-primary transition-colors">
-                                الأقسام
-                            </Link>
-                            <Link href="/offers" className="block text-gray-400 hover:text-primary transition-colors">
-                                العروض
-                            </Link>
-                            <Link href="/support" className="block text-gray-400 hover:text-primary transition-colors">
-                                الدعم
-                            </Link>
-                        </nav>
-                    </div>
-
-                    <div>
-                        <h4 className="font-bold mb-4">خدمة العملاء</h4>
-                        <nav className="space-y-2">
-                            <Link href="/account" className="block text-gray-400 hover:text-primary transition-colors">
-                                حسابي
-                            </Link>
-                            <Link href="/orders" className="block text-gray-400 hover:text-primary transition-colors">
-                                طلباتي
-                            </Link>
-                            <Link href="/terms" className="block text-gray-400 hover:text-primary transition-colors">
-                                الشروط والأحكام
-                            </Link>
-                            <Link href="/privacy" className="block text-gray-400 hover:text-primary transition-colors">
-                                سياسة الخصوصية
-                            </Link>
-                        </nav>
-                    </div>
-
-                    <div>
-                        <h4 className="font-bold mb-4">تواصل معنا</h4>
-                        <div className="space-y-3">
-                            <a href="tel:+963912345678" className="flex items-center gap-2 text-gray-400 hover:text-primary transition-colors">
-                                <Phone className="w-5 h-5" />
-                                <span>+963 912 345 678</span>
-                            </a>
-                            <a href="mailto:info@marketbasha.com" className="flex items-center gap-2 text-gray-400 hover:text-primary transition-colors">
-                                <Mail className="w-5 h-5" />
-                                <span>info@marketbasha.com</span>
-                            </a>
-                            <div className="flex items-center gap-2 text-gray-400">
-                                <MapPin className="w-5 h-5" />
-                                <span>سوريا</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-                    <p>© {new Date().getFullYear()} ماركت باشا. جميع الحقوق محفوظة.</p>
-                </div>
-            </div>
-        </footer>
     );
 }
 
@@ -690,17 +450,24 @@ export default function HomePage() {
     const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [offers, setOffers] = useState<Offer[]>([]);
-    const [user, setUser] = useState<{ name: string; role: string } | null>(null);
     const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        // Request notification permission
+        if (typeof window !== 'undefined' && 'Notification' in window) {
+            if (Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
+    }, []);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [productsRes, categoriesRes, offersRes, userRes] = await Promise.all([
+                const [productsRes, categoriesRes, offersRes] = await Promise.all([
                     fetch('/api/products?limit=12'),
                     fetch('/api/categories'),
-                    fetch('/api/offers?active=true'),
-                    fetch('/api/auth/me'),
+                    fetch('/api/offers?active=true')
                 ]);
 
                 if (productsRes.ok) {
@@ -717,11 +484,6 @@ export default function HomePage() {
                 if (offersRes.ok) {
                     const data = await offersRes.json();
                     setOffers(data.offers || []);
-                }
-
-                if (userRes.ok) {
-                    const data = await userRes.json();
-                    if (data.user) setUser(data.user);
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -793,11 +555,7 @@ export default function HomePage() {
 
     return (
         <div className="min-h-screen flex flex-col">
-            <Header
-                cartCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
-                onCartClick={() => setCartOpen(true)}
-                user={user}
-            />
+            <Header onCartClick={() => setCartOpen(true)} />
 
             <main className="flex-1">
                 <div className="container mx-auto px-4 py-6">
