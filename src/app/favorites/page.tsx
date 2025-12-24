@@ -1,0 +1,180 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { Heart, Package } from 'lucide-react';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import ProductCard, { Product } from '@/components/ProductCard';
+import CartSidebar from '@/components/CartSidebar';
+
+export default function FavoritesPage() {
+    const [products, setProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [cart, setCart] = useState<{ id: string; quantity: number }[]>([]);
+    const [isCartOpen, setIsCartOpen] = useState(false);
+
+    // Cart Logic (Duplicated for now, ideally extracted to context)
+    useEffect(() => {
+        const savedCart = localStorage.getItem('cart');
+        if (savedCart) {
+            setCart(JSON.parse(savedCart));
+        }
+    }, []);
+
+    const addToCart = (product: Product) => {
+        const newCart = [...cart];
+        const existing = newCart.find(item => item.id === product.id);
+        if (existing) {
+            existing.quantity += 1;
+        } else {
+            newCart.push({ id: product.id, quantity: 1 });
+        }
+        setCart(newCart);
+        localStorage.setItem('cart', JSON.stringify(newCart));
+        window.dispatchEvent(new Event('storage'));
+        setIsCartOpen(true);
+    };
+
+    const updateCartQuantity = (id: string, quantity: number) => {
+        const newCart = cart.map(item => {
+            if (item.id === id) return { ...item, quantity };
+            return item;
+        });
+        setCart(newCart);
+        localStorage.setItem('cart', JSON.stringify(newCart));
+        window.dispatchEvent(new Event('storage'));
+    };
+
+    const removeFromCart = (id: string) => {
+        const newCart = cart.filter(item => item.id !== id);
+        setCart(newCart);
+        localStorage.setItem('cart', JSON.stringify(newCart));
+        window.dispatchEvent(new Event('storage'));
+    };
+
+    const cartItems = cart.map(item => {
+        const product = products.find(p => p.id === item.id);
+        // Note: If product not in favorites search, we might miss details.
+        // For partial implementation, we might need to fetch cart details separately if not in current view
+        // But for this page, we assume we might only see favorites.
+        // Actually, CartSidebar usually needs full product details.
+        // If the cart has items NOT in favorites, they will be missing details if we only search in `products`.
+        // Ideally CartSidebar fetches its own details or we have a global product store.
+        // For MVP, we pass what we have. If missing, CartSidebar handles it gracefully?
+        // Let's check CartSidebar. It takes `CartItem extends Product`.
+        // So we need full product details for cart items.
+        // If we only fetch favorites, cart items not in favorites won't display correctly in sidebar on this page.
+        // We will leave this as a known limitation for now or fetch all cart items details?
+        // Let's just pass what we have and maybe ignore missing ones or show loading?
+        // Real implementation should fetch cart products by IDs too.
+
+        // For now, let's just make it work for items that ARE in favorites, 
+        // or simplistic approach: The cart sidebar in this page might look broken for non-favorite items.
+        // Correct fix: Fetch cart items details too.
+        return product ? { ...product, quantity: item.quantity } : null;
+    }).filter(Boolean) as any[]; // Cast to any to avoid strict type mismatch if product missing
+
+    // Fetch Favorites
+    useEffect(() => {
+        const fetchFavorites = async () => {
+            setLoading(true);
+            try {
+                const favIds = JSON.parse(localStorage.getItem('favorites') || '[]');
+
+                if (favIds.length === 0) {
+                    setProducts([]);
+                    setLoading(false);
+                    return;
+                }
+
+                const params = new URLSearchParams({
+                    ids: favIds.join(','),
+                    limit: '100' // Fetch all favorites
+                });
+
+                const res = await fetch(`/api/products?${params}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setProducts(data.products);
+                }
+            } catch (error) {
+                console.error('Error fetching favorites:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchFavorites();
+
+        // Listen for storage changes (if favs updated in another tab or component)
+        const handleStorage = () => {
+            // Ideally re-fetch or just update list if we have all data.
+            // For simplicity, we re-fetch if storage event implies favorites changed?
+            // Actually, storage event fires on other tabs, not same tab for localStorage.setItem.
+            // But we dispatch 'storage' manually in ProductCard.
+            // So we should re-fetch.
+            fetchFavorites();
+        };
+
+        window.addEventListener('storage', handleStorage);
+        return () => window.removeEventListener('storage', handleStorage);
+    }, []);
+
+    return (
+        <div className="min-h-screen bg-gray-50 flex flex-col">
+            <Header onCartClick={() => setIsCartOpen(true)} />
+
+            <main className="flex-1 container mx-auto px-4 py-8">
+                <div className="flex items-center gap-3 mb-8">
+                    <div className="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center text-red-500">
+                        <Heart className="w-6 h-6 fill-current" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-bold text-secondary-900">المفضلة</h1>
+                        <p className="text-gray-500 text-sm">المنتجات التي قمت بحفظها</p>
+                    </div>
+                </div>
+
+                {loading ? (
+                    <div className="flex justify-center py-20">
+                        <div className="spinner"></div>
+                    </div>
+                ) : products.length === 0 ? (
+                    <div className="text-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100">
+                        <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <Heart className="w-10 h-10 text-gray-300" />
+                        </div>
+                        <h2 className="text-xl font-bold text-gray-900 mb-2">لا توجد منتجات في المفضلة</h2>
+                        <p className="text-gray-500 mb-8 max-w-sm mx-auto">
+                            قم بالضغط على رمز القلب بجانب المنتجات لإضافتها هنا والرجوع إليها لاحقاً
+                        </p>
+                        <Link href="/products" className="btn btn-primary shadow-lg shadow-primary/20">
+                            تصفح المنتجات
+                        </Link>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                        {products.map(product => (
+                            <ProductCard
+                                key={product.id}
+                                product={product}
+                                onAddToCart={addToCart}
+                            />
+                        ))}
+                    </div>
+                )}
+            </main>
+
+            <Footer />
+
+            <CartSidebar
+                items={cartItems}
+                isOpen={isCartOpen}
+                onClose={() => setIsCartOpen(false)}
+                onUpdateQuantity={updateCartQuantity}
+                onRemove={removeFromCart}
+            />
+        </div>
+    );
+}

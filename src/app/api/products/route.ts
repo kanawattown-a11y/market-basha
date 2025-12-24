@@ -17,9 +17,18 @@ export async function GET(request: NextRequest) {
         const sortBy = searchParams.get('sortBy') || 'createdAt';
         const sortOrder = searchParams.get('sortOrder') || 'desc';
 
+        const ids = searchParams.get('ids');
+
         const where: Record<string, unknown> = {
             isActive: true,
         };
+
+        if (ids) {
+            const idsArray = ids.split(',').filter(Boolean);
+            if (idsArray.length > 0) {
+                where.id = { in: idsArray };
+            }
+        }
 
         if (category) where.categoryId = category;
         if (featured) where.isFeatured = true;

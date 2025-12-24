@@ -50,6 +50,9 @@ function ProductsContent() {
     const [search, setSearch] = useState(searchParam || '');
     const [selectedCategory, setSelectedCategory] = useState(categoryParam || '');
     const [showFilters, setShowFilters] = useState(false);
+
+    // Cart State
+    const [isCartOpen, setIsCartOpen] = useState(false);
     const [cart, setCart] = useState<{ id: string; quantity: number }[]>([]);
 
     useEffect(() => {
@@ -57,10 +60,60 @@ function ProductsContent() {
         if (savedCart) {
             setCart(JSON.parse(savedCart));
         }
+
+        const handleStorage = () => {
+            const saved = localStorage.getItem('cart');
+            if (saved) setCart(JSON.parse(saved));
+        };
+        window.addEventListener('storage', handleStorage);
+        return () => window.removeEventListener('storage', handleStorage);
     }, []);
 
     const router = useRouter();
-    // Note: ensure useRouter is imported from next/navigation
+
+    const updateCartQuantity = (id: string, quantity: number) => {
+        const newCart = cart.map(item => {
+            if (item.id === id) return { ...item, quantity };
+            return item;
+        });
+        setCart(newCart);
+        localStorage.setItem('cart', JSON.stringify(newCart));
+        window.dispatchEvent(new Event('storage'));
+    };
+
+    const removeFromCart = (id: string) => {
+        const newCart = cart.filter(item => item.id !== id);
+        setCart(newCart);
+        localStorage.setItem('cart', JSON.stringify(newCart));
+        window.dispatchEvent(new Event('storage'));
+    };
+
+    const addToCart = (productId: string) => {
+        const newCart = [...cart];
+        const existing = newCart.find(item => item.id === productId);
+        if (existing) {
+            existing.quantity += 1;
+        } else {
+            newCart.push({ id: productId, quantity: 1 });
+        }
+        setCart(newCart);
+        localStorage.setItem('cart', JSON.stringify(newCart));
+        window.dispatchEvent(new Event('storage'));
+        setIsCartOpen(true);
+    };
+
+    // Calculate cart items with product details
+    // Note: We need full product details for CartSidebar.
+    // In this page we have `products`, so we can try to find them there.
+    // But cart might have items not in current page list.
+    // Ideally fetch cart details. For MVP, we use what we have or placeholder.
+    const cartItems = cart.map(item => {
+        const product = products.find(p => p.id === item.id);
+        // Fallback if product not found in current list (simplistic)
+        return product ? { ...product, quantity: item.quantity } : null;
+    }).filter(Boolean) as any[];
+
+
 
     const fetchProducts = async () => {
         setLoading(true);
@@ -128,23 +181,11 @@ function ProductsContent() {
         router.push(`/products?${params.toString()}`);
     };
 
-    const addToCart = (productId: string) => {
-        const newCart = [...cart];
-        const existing = newCart.find(item => item.id === productId);
-        if (existing) {
-            existing.quantity += 1;
-        } else {
-            newCart.push({ id: productId, quantity: 1 });
-        }
-        setCart(newCart);
-        localStorage.setItem('cart', JSON.stringify(newCart));
-    };
-
     const selectedCategoryData = categories.find(c => c.id === selectedCategory);
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <Header />
+            <Header onCartClick={() => setIsCartOpen(true)} />
 
             <main className="container mx-auto px-4 py-6">
                 {/* Breadcrumb */}

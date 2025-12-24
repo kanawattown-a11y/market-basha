@@ -82,11 +82,12 @@ export default function LoginPage() {
                                     type="text"
                                     value={formData.identifier}
                                     onChange={(e) => setFormData({ ...formData, identifier: e.target.value })}
-                                    className="input pr-12"
+                                    className="input pl-12 text-right"
                                     placeholder="أدخل رقم الهاتف أو البريد"
                                     required
+                                    dir="auto"
                                 />
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
                                     <Phone className="w-5 h-5" />
                                 </div>
                             </div>
@@ -99,17 +100,18 @@ export default function LoginPage() {
                                     type={showPassword ? 'text' : 'password'}
                                     value={formData.password}
                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                    className="input pr-12"
+                                    className="input pl-12 text-right"
                                     placeholder="أدخل كلمة المرور"
                                     required
+                                    dir="auto"
                                 />
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
                                     <Lock className="w-5 h-5" />
                                 </div>
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                                 >
                                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                 </button>

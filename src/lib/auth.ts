@@ -131,6 +131,8 @@ export async function login(identifier: string, password: string): Promise<{ suc
         const cookieStore = await cookies();
         cookieStore.set('auth-token', token, {
             httpOnly: true,
+            // Allow HTTP for development/local network testing on mobile
+            // Only force secure in strict production if not overridden
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
             maxAge: 60 * 60 * 24 * 90, // 90 days

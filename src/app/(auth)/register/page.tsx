@@ -111,11 +111,12 @@ export default function RegisterPage() {
                                     type="text"
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="input pr-12"
+                                    className="input pl-12 text-right"
                                     placeholder="أدخل اسمك الكامل"
                                     required
+                                    dir="auto"
                                 />
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
                                     <User className="w-5 h-5" />
                                 </div>
                             </div>
@@ -141,7 +142,7 @@ export default function RegisterPage() {
 
                                         setFormData({ ...formData, phone: val });
                                     }}
-                                    className={`input pr-12 ${formData.phone && !/^\+9639\d{8}$/.test(formData.phone)
+                                    className={`input pl-12 text-right ${formData.phone && !/^\+9639\d{8}$/.test(formData.phone)
                                         ? 'border-red-500 focus:border-red-500'
                                         : formData.phone && /^\+9639\d{8}$/.test(formData.phone)
                                             ? 'border-green-500 focus:border-green-500'
@@ -151,7 +152,7 @@ export default function RegisterPage() {
                                     required
                                     dir="ltr"
                                 />
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
                                     <Phone className="w-5 h-5" />
                                 </div>
                             </div>
@@ -174,11 +175,11 @@ export default function RegisterPage() {
                                     type="email"
                                     value={formData.email}
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    className="input pr-12"
+                                    className="input pl-12 text-right"
                                     placeholder="example@email.com"
                                     dir="ltr"
                                 />
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
                                     <Mail className="w-5 h-5" />
                                 </div>
                             </div>
@@ -191,18 +192,19 @@ export default function RegisterPage() {
                                     type={showPassword ? 'text' : 'password'}
                                     value={formData.password}
                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                    className="input pr-12"
+                                    className="input pl-12 text-right"
                                     placeholder="8 أحرف على الأقل"
                                     required
                                     minLength={8}
+                                    dir="auto"
                                 />
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
                                     <Lock className="w-5 h-5" />
                                 </div>
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                                 >
                                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                 </button>
@@ -272,13 +274,21 @@ export default function RegisterPage() {
                                     type={showPassword ? 'text' : 'password'}
                                     value={formData.confirmPassword}
                                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                                    className="input pr-12"
+                                    className="input pl-12 text-right"
                                     placeholder="أعد إدخال كلمة المرور"
                                     required
+                                    dir="auto"
                                 />
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
                                     <Lock className="w-5 h-5" />
                                 </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                >
+                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
                             </div>
                         </div>
 
