@@ -161,6 +161,11 @@ function HeroCarousel({ offers }: { offers: Offer[] }) {
                             <Image src="/logo.svg" alt="Market Basha" fill className="object-contain drop-shadow-2xl" />
                         </div>
                     </div>
+                </div>
+            )}
+
+            {offers.length > 1 && (
+                <>
                     <button
                         onClick={prevSlide}
                         className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-md border border-white/30 rounded-full flex items-center justify-center text-white hover:bg-white hover:text-secondary-900 transition-all z-30"
@@ -174,9 +179,8 @@ function HeroCarousel({ offers }: { offers: Offer[] }) {
                         <ChevronRight className="w-6 h-6" />
                     </button>
                 </>
-            )
-            }
-        </div >
+            )}
+        </div>
     );
 }
 
