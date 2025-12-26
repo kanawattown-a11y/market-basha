@@ -4,6 +4,7 @@ import { getSession } from '@/lib/auth';
 import { ticketSchema } from '@/lib/validations';
 import { createAuditLog } from '@/lib/audit';
 import { generateTicketNumber } from '@/lib/utils';
+import { sendPushToRole } from '@/lib/notifications';
 
 // GET /api/tickets - Get tickets
 export async function GET(request: NextRequest) {
@@ -128,6 +129,27 @@ export async function POST(request: NextRequest) {
             entityId: ticket.id,
             newData: { subject, priority },
         });
+
+        // Notify Admins and Operations
+        const notificationPayload = {
+            title: 'تذكرة دعم فني جديدة',
+            body: `تذكرة جديدة رقم #${ticket.ticketNumber}: ${subject}`,
+            data: {
+                type: 'NEW_TICKET',
+                ticketId: ticket.id,
+                url: `/admin/tickets/${ticket.id}`
+            }
+        };
+
+        // We can send to both roles
+        try {
+            await Promise.all([
+                sendPushToRole('ADMIN', notificationPayload),
+                sendPushToRole('OPERATIONS', notificationPayload)
+            ]);
+        } catch (error) {
+            console.error('Error sending ticket notifications:', error);
+        }
 
         return NextResponse.json({
             message: 'تم إرسال التذكرة بنجاح',

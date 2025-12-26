@@ -135,7 +135,7 @@ export default function DriverOrderDetailPage() {
 
             {/* Order Items */}
             <div className="card p-4">
-                <h3 className="font-bold text-secondary-800 mb-3">المنتجات ({order.items.length})</h3>
+                <h3 className="font-bold text-secondary-800 mb-3">المنتجات ({order.items?.length || 0})</h3>
                 <div className="space-y-2">
                     {order.items?.map((item) => (
                         <div key={item.id} className="flex items-center justify-between py-2 border-b last:border-0">

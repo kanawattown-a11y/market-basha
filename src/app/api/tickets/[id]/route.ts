@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
-import { notifyTicketUpdate } from '@/lib/notifications';
+import { notifyTicketUpdate, sendPushNotification, sendPushToRole } from '@/lib/notifications';
 
 // GET /api/tickets/[id]
 export async function GET(
@@ -89,6 +89,34 @@ export async function POST(
         // Notify ticket owner if staff replied
         if (isStaff && ticket.userId !== user.id) {
             await notifyTicketUpdate(id, ticket.userId, 'تم الرد على تذكرتك من فريق الدعم');
+        }
+
+        // Notify staff if user replied
+        if (!isStaff && ticket.userId === user.id) {
+            const notificationPayload = {
+                title: 'رد جديد على تذكرة',
+                body: `رد جديد على التذكرة #${ticket.ticketNumber}`,
+                data: {
+                    type: 'TICKET_REPLY',
+                    ticketId: ticket.id,
+                    url: `/admin/tickets/${ticket.id}`
+                }
+            };
+
+            if (ticket.assignedToId) {
+                // If assigned, notify the assigned staff
+                await sendPushNotification(ticket.assignedToId, notificationPayload);
+            } else {
+                // If unassigned, notify all admins/operations
+                try {
+                    await Promise.all([
+                        sendPushToRole('ADMIN', notificationPayload),
+                        sendPushToRole('OPERATIONS', notificationPayload)
+                    ]);
+                } catch (error) {
+                    console.error('Error sending ticket reply notifications:', error);
+                }
+            }
         }
 
         return NextResponse.json({ message: 'تم الإرسال', data: ticketMessage });

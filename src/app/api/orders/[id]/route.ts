@@ -146,11 +146,25 @@ export async function PUT(
 
             // Notify customer
             await notifyOrderStatusChange(id, status, order.customerId, order.driverId);
+
+            // When order is delivered, set driver as available again
+            if (status === 'DELIVERED' && order.driverId) {
+                await prisma.user.update({
+                    where: { id: order.driverId },
+                    data: { isAvailable: true },
+                });
+            }
         }
 
-        // Notify driver if assigned
+        // When driver is assigned, set them as busy (not available)
         if (driverId && driverId !== oldOrder.driverId) {
             await notifyOrderStatusChange(id, 'DRIVER_ASSIGNED', order.customerId, driverId);
+
+            // Set driver as busy
+            await prisma.user.update({
+                where: { id: driverId },
+                data: { isAvailable: false },
+            });
         }
 
         // Audit log

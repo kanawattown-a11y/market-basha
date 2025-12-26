@@ -63,7 +63,25 @@ export async function GET(
             );
         }
 
-        return NextResponse.json({ user });
+        let driverStats = null;
+        if (user.role === 'DRIVER') {
+            const stats = await prisma.order.aggregate({
+                where: {
+                    driverId: id,
+                    status: 'DELIVERED',
+                },
+                _sum: {
+                    total: true,
+                    deliveryFee: true,
+                },
+            });
+            driverStats = {
+                totalRevenue: Number(stats._sum.total || 0),
+                totalDeliveryFees: Number(stats._sum.deliveryFee || 0),
+            };
+        }
+
+        return NextResponse.json({ user: { ...user, driverStats } });
     } catch (error: unknown) {
         console.error('Get user error:', error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';

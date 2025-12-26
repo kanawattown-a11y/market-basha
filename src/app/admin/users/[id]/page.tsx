@@ -16,7 +16,7 @@ import {
     X,
     AlertCircle
 } from 'lucide-react';
-import { formatDateTime, translateRole, translateUserStatus, getUserStatusColor } from '@/lib/utils';
+import { formatDateTime, translateRole, translateUserStatus, getUserStatusColor, formatCurrency } from '@/lib/utils';
 
 interface UserData {
     id: string;
@@ -219,13 +219,36 @@ export default function AdminUserViewPage() {
                                 <span className="font-bold text-secondary-800">{user._count.orders}</span>
                             </div>
                             {user.role === 'DRIVER' && (
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2 text-gray-500">
-                                        <Truck className="w-4 h-4" />
-                                        <span>التوصيلات</span>
+                                <>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 text-gray-500">
+                                            <Truck className="w-4 h-4" />
+                                            <span>التوصيلات</span>
+                                        </div>
+                                        <span className="font-bold text-secondary-800">{user._count.driverOrders}</span>
                                     </div>
-                                    <span className="font-bold text-secondary-800">{user._count.driverOrders}</span>
-                                </div>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 text-gray-500">
+                                            <div className="flex items-center gap-1">
+                                                <span className="text-xs">💰</span>
+                                                <span>الإيرادات</span>
+                                            </div>
+                                        </div>
+                                        <span className="font-bold text-green-600">
+                                            {/* @ts-ignore */}
+                                            {formatCurrency(user.driverStats?.totalRevenue || 0)}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 text-gray-500">
+                                            <Package className="w-4 h-4" />
+                                            <span>حالة التوفر</span>
+                                        </div>
+                                        <span className={`badge ${user.isAvailable ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
+                                            {user.isAvailable ? 'متاح' : 'مشغول'}
+                                        </span>
+                                    </div>
+                                </>
                             )}
                         </div>
                     </div>
