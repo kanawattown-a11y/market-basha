@@ -180,7 +180,7 @@ export async function register(data: {
     phone: string;
     password: string;
     serviceAreaId: string;
-}): Promise<{ success: boolean; message: string }> {
+}): Promise<{ success: boolean; message: string; userId?: string }> {
     try {
         // التحقق من عدم وجود المستخدم
         const existingUser = await prisma.user.findFirst({
@@ -229,7 +229,7 @@ export async function register(data: {
             });
         }
 
-        return { success: true, message: 'تم التسجيل بنجاح، يرجى انتظار موافقة الإدارة' };
+        return { success: true, message: 'تم التسجيل بنجاح، يرجى انتظار موافقة الإدارة', userId: user.id };
     } catch (error) {
         console.error('Register error:', error);
         return { success: false, message: 'حدث خطأ أثناء التسجيل' };

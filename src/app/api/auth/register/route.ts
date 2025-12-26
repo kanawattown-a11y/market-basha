@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { register } from '@/lib/auth';
 import { createAuditLog } from '@/lib/audit';
 import { registerSchema } from '@/lib/validations';
+import { notifyNewUser } from '@/lib/notifications';
 
 export async function POST(request: NextRequest) {
     try {
@@ -26,6 +27,11 @@ export async function POST(request: NextRequest) {
                 { message: result.message },
                 { status: 400 }
             );
+        }
+
+        // Notify admins about new user
+        if (result.userId) {
+            await notifyNewUser(result.userId, name);
         }
 
         // Log registration

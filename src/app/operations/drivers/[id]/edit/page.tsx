@@ -96,18 +96,36 @@ export default function EditDriverPage() {
         );
     }
 
+    const handleDelete = async () => {
+        if (!confirm('هل أنت متأكد من حذف هذا السائق؟')) return;
+
+        try {
+            const res = await fetch(`/api/users/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                router.push('/operations/drivers');
+            }
+        } catch (error) {
+            console.error('Error deleting driver:', error);
+        }
+    };
+
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-4">
-                <Link href="/operations/drivers" className="text-gray-400 hover:text-gray-600">
-                    <ChevronLeft className="w-6 h-6" />
-                </Link>
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <Truck className="w-5 h-5 text-blue-600" />
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <Link href="/operations/drivers" className="text-gray-400 hover:text-gray-600">
+                        <ChevronLeft className="w-6 h-6" />
+                    </Link>
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                            <Truck className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <h1 className="text-2xl font-bold text-secondary-800">تعديل بيانات السائق</h1>
                     </div>
-                    <h1 className="text-2xl font-bold text-secondary-800">تعديل بيانات السائق</h1>
                 </div>
+                <button onClick={handleDelete} className="btn btn-outline text-red-500 border-red-300">
+                    حذف السائق
+                </button>
             </div>
 
             <form onSubmit={handleSubmit} className="max-w-xl space-y-6">

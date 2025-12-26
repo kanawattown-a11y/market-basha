@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { notifyTicketUpdate } from '@/lib/notifications';
 
 // GET /api/tickets/[id]
 export async function GET(
@@ -83,6 +84,11 @@ export async function POST(
                 where: { id },
                 data: { status: 'IN_PROGRESS', assignedToId: user.id },
             });
+        }
+
+        // Notify ticket owner if staff replied
+        if (isStaff && ticket.userId !== user.id) {
+            await notifyTicketUpdate(id, ticket.userId, 'تم الرد على تذكرتك من فريق الدعم');
         }
 
         return NextResponse.json({ message: 'تم الإرسال', data: ticketMessage });
