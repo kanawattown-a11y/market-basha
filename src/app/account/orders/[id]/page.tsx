@@ -134,7 +134,7 @@ export default function AccountOrderDetailPage() {
             <div className="card p-4">
                 <h3 className="font-bold text-secondary-800 mb-4">المنتجات</h3>
                 <div className="space-y-3">
-                    {order.items.map((item) => (
+                    {order.items?.map((item) => (
                         <div key={item.id} className="flex items-center gap-3">
                             <div className="w-14 h-14 bg-gray-100 rounded-lg overflow-hidden relative shrink-0">
                                 {item.product.image ? (

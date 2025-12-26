@@ -178,9 +178,9 @@ export default function OrderTrackingPage() {
 
                 {/* Items */}
                 <div className="card p-4">
-                    <h3 className="font-bold text-secondary-800 mb-3">المنتجات ({order.items.length})</h3>
+                    <h3 className="font-bold text-secondary-800 mb-3">المنتجات ({order.items?.length || 0})</h3>
                     <div className="space-y-3">
-                        {order.items.map((item) => (
+                        {order.items?.map((item) => (
                             <div key={item.id} className="flex items-center gap-3">
                                 <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden relative shrink-0">
                                     {item.product.image ? (

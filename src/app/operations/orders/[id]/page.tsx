@@ -153,7 +153,7 @@ export default function AdminOrderDetailPage() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {order.items.map((item) => (
+                                    {order.items?.map((item) => (
                                         <tr key={item.id}>
                                             <td>
                                                 <div className="flex items-center gap-3">
