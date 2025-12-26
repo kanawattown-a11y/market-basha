@@ -46,17 +46,10 @@ export default function DriverAssignmentModal({
     const fetchDrivers = async () => {
         setLoading(true);
         try {
-            // Fetch only active drivers
-            // We fetch all drivers (available or not) to show them, but prioritize available ones visually if needed
-            // Ideally we want available ones. Let's fetch available ones.
-            // But if we want to reassign to a busy driver? Maybe just fetch all ACTIVE drivers.
-            // Requirement said "available drivers", lets try filtering by available but maybe the business logic allows assigning busy ones too?
-            // "from available drivers" was the prompt. So let's stick to isAvailable=true initially, or just show availability status.
-            // Let's fetch ALL active drivers and show their status.
-
+            // Fetch all approved drivers with DRIVER role
             const params = new URLSearchParams({
                 role: 'DRIVER',
-                status: 'ACTIVE',
+                status: 'APPROVED',
                 limit: '50'
             });
 
@@ -131,8 +124,8 @@ export default function DriverAssignmentModal({
                                 key={driver.id}
                                 onClick={() => setSelectedDriverId(driver.id)}
                                 className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all ${selectedDriverId === driver.id
-                                        ? 'border-primary bg-primary/5 shadow-sm'
-                                        : 'border-gray-200 hover:border-primary/50 hover:bg-gray-50'
+                                    ? 'border-primary bg-primary/5 shadow-sm'
+                                    : 'border-gray-200 hover:border-primary/50 hover:bg-gray-50'
                                     }`}
                             >
                                 <div className="relative w-12 h-12 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">

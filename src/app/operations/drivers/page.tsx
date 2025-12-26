@@ -1,12 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import {
-    Plus,
     Search,
-    Edit,
-    Trash2,
     ChevronRight,
     ChevronLeft,
     Truck,
@@ -97,17 +93,11 @@ export default function OperationsDriversPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-secondary-800">السائقون</h1>
-                    <p className="text-gray-500">إدارة سائقي التوصيل</p>
+                    <p className="text-gray-500">عرض سائقي التوصيل</p>
                 </div>
-                <div className="flex items-center gap-2">
-                    <button onClick={fetchDrivers} className="btn btn-outline btn-sm" disabled={loading}>
-                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                    </button>
-                    <Link href="/operations/drivers/new" className="btn btn-primary">
-                        <Plus className="w-5 h-5" />
-                        إضافة سائق
-                    </Link>
-                </div>
+                <button onClick={fetchDrivers} className="btn btn-outline btn-sm" disabled={loading}>
+                    <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                </button>
             </div>
 
             <div className="card p-4 flex flex-wrap gap-4">
@@ -257,29 +247,24 @@ export default function OperationsDriversPage() {
                                         <td>{driver._count.driverOrders}</td>
                                         <td className="text-sm text-gray-500">{formatDateTime(driver.createdAt)}</td>
                                         <td>
-                                            <div className="flex items-center gap-1">
-                                                {driver.status === 'PENDING' && (
-                                                    <>
-                                                        <button
-                                                            onClick={() => updateStatus(driver.id, 'APPROVED')}
-                                                            className="btn btn-ghost btn-sm text-green-500"
-                                                            title="قبول"
-                                                        >
-                                                            <Check className="w-4 h-4" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => updateStatus(driver.id, 'REJECTED')}
-                                                            className="btn btn-ghost btn-sm text-red-500"
-                                                            title="رفض"
-                                                        >
-                                                            <X className="w-4 h-4" />
-                                                        </button>
-                                                    </>
-                                                )}
-                                                <Link href={`/operations/drivers/${driver.id}/edit`} className="btn btn-ghost btn-sm">
-                                                    <Edit className="w-4 h-4" />
-                                                </Link>
-                                            </div>
+                                            {driver.status === 'PENDING' && (
+                                                <div className="flex items-center gap-1">
+                                                    <button
+                                                        onClick={() => updateStatus(driver.id, 'APPROVED')}
+                                                        className="btn btn-ghost btn-sm text-green-500"
+                                                        title="قبول"
+                                                    >
+                                                        <Check className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => updateStatus(driver.id, 'REJECTED')}
+                                                        className="btn btn-ghost btn-sm text-red-500"
+                                                        title="رفض"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            )}
                                         </td>
                                     </tr>
                                 ))
@@ -313,3 +298,4 @@ export default function OperationsDriversPage() {
         </div>
     );
 }
+
