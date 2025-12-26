@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Package, Truck, Clock, MapPin, Phone } from 'lucide-react';
+import { Package, Truck, Clock, MapPin, Phone, User } from 'lucide-react';
 import Link from 'next/link';
 import { formatCurrency, formatRelativeTime } from '@/lib/utils';
 
@@ -13,7 +13,7 @@ interface Order {
     createdAt: string;
     customer: { name: string; phone: string };
     address: { area: string; fullAddress: string };
-    _count: { items: number };
+    items: { id: string }[];
 }
 
 export default function DriverOrdersPage() {
@@ -86,8 +86,9 @@ export default function DriverOrdersPage() {
 
                             <div className="space-y-2 text-sm">
                                 <div className="flex items-center gap-2 text-gray-600">
-                                    <Truck className="w-4 h-4 text-gray-400" />
+                                    <User className="w-4 h-4 text-gray-400" />
                                     <span>{order.customer.name}</span>
+                                    <span className="text-gray-400 mx-1">|</span>
                                     <a
                                         href={`tel:${order.customer.phone}`}
                                         className="text-primary hover:underline flex items-center gap-1"
@@ -105,13 +106,14 @@ export default function DriverOrdersPage() {
                                     <Clock className="w-4 h-4" />
                                     <span>{formatRelativeTime(order.createdAt)}</span>
                                     <span>•</span>
-                                    <span>{order._count.items} منتجات</span>
+                                    <span>{order.items?.length || 0} منتجات</span>
                                 </div>
                             </div>
                         </Link>
                     ))}
                 </div>
-            )}
-        </div>
+            )
+            }
+        </div >
     );
 }
