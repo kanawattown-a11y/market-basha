@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronLeft, Save, Upload, X, AlertCircle, Image as ImageIcon, Star } from 'lucide-react';
+import { ChevronLeft, Save, AlertCircle, Trash2, Upload, X, Star, Image as ImageIcon } from 'lucide-react';
 
 interface Category {
     id: string;
@@ -15,18 +15,22 @@ interface ServiceArea {
     name: string;
 }
 
-export default function NewProductPage() {
+export default function EditProductPage() {
+    const params = useParams();
+    const id = params.id as string;
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
     const [categories, setCategories] = useState<Category[]>([]);
     const [serviceAreas, setServiceAreas] = useState<ServiceArea[]>([]);
+    const [selectedAreaIds, setSelectedAreaIds] = useState<string[]>([]);
     const [images, setImages] = useState<string[]>([]);
     const [mainImageIndex, setMainImageIndex] = useState(0);
     const [uploading, setUploading] = useState(false);
-    const [selectedAreaIds, setSelectedAreaIds] = useState<string[]>([]);
     const [formData, setFormData] = useState({
         name: '',
+        sku: '',
         description: '',
         price: 0,
         compareAtPrice: 0,
@@ -42,25 +46,64 @@ export default function NewProductPage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [catRes, areasRes] = await Promise.all([
+                const [productRes, catsRes, areasRes] = await Promise.all([
+                    fetch(`/api/products/${id}`),
                     fetch('/api/categories'),
-                    fetch('/api/service-areas?active=true')
+                    fetch('/api/service-areas?active=true'),
                 ]);
 
-                if (catRes.ok) {
-                    const data = await catRes.json();
+                if (productRes.ok) {
+                    const data = await productRes.json();
+                    setFormData({
+                        name: data.product.name,
+                        sku: data.product.sku,
+                        description: data.product.description || '',
+                        price: Number(data.product.price),
+                        compareAtPrice: Number(data.product.compareAtPrice) || 0,
+                        categoryId: data.product.categoryId,
+                        stock: data.product.stock,
+                        unit: data.product.unit,
+                        lowStockThreshold: data.product.lowStockThreshold,
+                        isActive: data.product.isActive,
+                        isFeatured: data.product.isFeatured,
+                        trackStock: data.product.trackStock,
+                    });
+
+                    // Load existing images
+                    const allImages: string[] = [];
+                    if (data.product.image) {
+                        allImages.push(data.product.image);
+                    }
+                    if (data.product.images && Array.isArray(data.product.images)) {
+                        allImages.push(...data.product.images);
+                    }
+                    setImages(allImages);
+                    setMainImageIndex(0);
+
+                    // Load existing service areas
+                    if (data.product.serviceAreas && Array.isArray(data.product.serviceAreas)) {
+                        const areaIds = data.product.serviceAreas.map((sa: { serviceArea: { id: string } }) => sa.serviceArea.id);
+                        setSelectedAreaIds(areaIds);
+                    }
+                }
+
+                if (catsRes.ok) {
+                    const data = await catsRes.json();
                     setCategories(data.categories);
                 }
+
                 if (areasRes.ok) {
                     const data = await areasRes.json();
                     setServiceAreas(data.areas || []);
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
+            } finally {
+                setLoading(false);
             }
         };
         fetchData();
-    }, []);
+    }, [id]);
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
@@ -72,7 +115,6 @@ export default function NewProductPage() {
             const uploadedUrls: string[] = [];
 
             for (const file of Array.from(files)) {
-                // Create FormData for upload
                 const formData = new FormData();
                 formData.append('file', file);
                 formData.append('folder', 'products');
@@ -86,7 +128,7 @@ export default function NewProductPage() {
                     const data = await res.json();
                     uploadedUrls.push(data.url);
                 } else {
-                    // If upload API doesn't exist, use base64 as fallback
+                    // Fallback to base64
                     const reader = new FileReader();
                     const url = await new Promise<string>((resolve) => {
                         reader.onload = () => resolve(reader.result as string);
@@ -120,15 +162,15 @@ export default function NewProductPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
+        setSaving(true);
         setError('');
 
         try {
             const mainImage = images[mainImageIndex] || null;
             const additionalImages = images.filter((_, i) => i !== mainImageIndex);
 
-            const res = await fetch('/api/products', {
-                method: 'POST',
+            const res = await fetch(`/api/products/${id}`, {
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...formData,
@@ -138,9 +180,8 @@ export default function NewProductPage() {
                 }),
             });
 
-            const data = await res.json();
-
             if (!res.ok) {
+                const data = await res.json();
                 setError(data.message || 'حدث خطأ');
                 return;
             }
@@ -149,17 +190,44 @@ export default function NewProductPage() {
         } catch {
             setError('حدث خطأ في الاتصال');
         } finally {
-            setLoading(false);
+            setSaving(false);
         }
     };
 
+    const handleDelete = async () => {
+        if (!confirm('هل أنت متأكد من حذف هذا المنتج؟')) return;
+
+        try {
+            const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                router.push('/operations/products');
+            }
+        } catch (error) {
+            console.error('Error deleting product:', error);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="text-center py-12">
+                <div className="spinner mx-auto"></div>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-4 md:space-y-6">
-            <div className="flex items-center gap-4">
-                <Link href="/operations/products" className="text-gray-400 hover:text-gray-600">
-                    <ChevronLeft className="w-6 h-6" />
-                </Link>
-                <h1 className="text-xl md:text-2xl font-bold text-secondary-800">إضافة منتج جديد</h1>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <Link href="/operations/products" className="text-gray-400 hover:text-gray-600">
+                        <ChevronLeft className="w-6 h-6" />
+                    </Link>
+                    <h1 className="text-xl md:text-2xl font-bold text-secondary-800">تعديل المنتج</h1>
+                </div>
+                <button onClick={handleDelete} className="btn btn-outline text-red-500 border-red-300 w-full sm:w-auto">
+                    <Trash2 className="w-5 h-5" />
+                    حذف
+                </button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
@@ -256,11 +324,10 @@ export default function NewProductPage() {
 
                 {/* معلومات المنتج */}
                 <div className="card p-4 md:p-6">
-                    <h3 className="font-bold text-secondary-800 mb-4">معلومات المنتج الأساسية</h3>
-
+                    <h3 className="font-bold text-secondary-800 mb-4">معلومات المنتج</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">اسم المنتج *</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">اسم المنتج</label>
                             <input
                                 type="text"
                                 value={formData.name}
@@ -269,7 +336,16 @@ export default function NewProductPage() {
                                 required
                             />
                         </div>
-
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">SKU</label>
+                            <input
+                                type="text"
+                                value={formData.sku}
+                                onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                                className="input"
+                                required
+                            />
+                        </div>
                         <div className="md:col-span-2">
                             <label className="block text-sm font-medium text-gray-700 mb-1">الوصف</label>
                             <textarea
@@ -278,9 +354,8 @@ export default function NewProductPage() {
                                 className="input min-h-24"
                             />
                         </div>
-
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">القسم *</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">القسم</label>
                             <select
                                 value={formData.categoryId}
                                 onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
@@ -293,9 +368,8 @@ export default function NewProductPage() {
                                 ))}
                             </select>
                         </div>
-
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">وحدة القياس</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">الوحدة</label>
                             <select
                                 value={formData.unit}
                                 onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
@@ -311,7 +385,7 @@ export default function NewProductPage() {
 
                         {/* مناطق التخديم */}
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">مناطق التخديم *</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">مناطق التخديم</label>
                             <p className="text-xs text-gray-500 mb-2">اختر المناطق التي يتوفر فيها هذا المنتج</p>
                             <div className="flex flex-wrap gap-2">
                                 {serviceAreas.map((area) => (
@@ -339,7 +413,7 @@ export default function NewProductPage() {
                                 ))}
                             </div>
                             {serviceAreas.length === 0 && (
-                                <p className="text-sm text-yellow-600 mt-2">⚠️ لا توجد مناطق تخديم. يرجى إضافة مناطق أولاً.</p>
+                                <p className="text-sm text-yellow-600 mt-2">⚠️ لا توجد مناطق تخديم متاحة</p>
                             )}
                         </div>
                     </div>
@@ -348,20 +422,17 @@ export default function NewProductPage() {
                 {/* التسعير */}
                 <div className="card p-4 md:p-6">
                     <h3 className="font-bold text-secondary-800 mb-4">التسعير والمخزون</h3>
-
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">السعر (ل.س) *</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">السعر (ل.س)</label>
                             <input
                                 type="number"
                                 value={formData.price}
                                 onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value) })}
                                 className="input"
-                                min="0"
                                 required
                             />
                         </div>
-
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">السعر قبل الخصم</label>
                             <input
@@ -369,21 +440,17 @@ export default function NewProductPage() {
                                 value={formData.compareAtPrice}
                                 onChange={(e) => setFormData({ ...formData, compareAtPrice: parseInt(e.target.value) })}
                                 className="input"
-                                min="0"
                             />
                         </div>
-
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">الكمية</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">المخزون</label>
                             <input
                                 type="number"
                                 value={formData.stock}
                                 onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) })}
                                 className="input"
-                                min="0"
                             />
                         </div>
-
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">حد التحذير</label>
                             <input
@@ -391,7 +458,6 @@ export default function NewProductPage() {
                                 value={formData.lowStockThreshold}
                                 onChange={(e) => setFormData({ ...formData, lowStockThreshold: parseInt(e.target.value) })}
                                 className="input"
-                                min="0"
                             />
                         </div>
                     </div>
@@ -400,7 +466,6 @@ export default function NewProductPage() {
                 {/* الخيارات */}
                 <div className="card p-4 md:p-6">
                     <h3 className="font-bold text-secondary-800 mb-4">الخيارات</h3>
-
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <label className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
                             <input
@@ -444,23 +509,17 @@ export default function NewProductPage() {
                 </div>
 
                 {error && (
-                    <div className="flex items-center gap-2 text-red-600 bg-red-50 p-3 rounded-lg text-sm">
+                    <div className="flex items-center gap-2 text-red-600 bg-red-50 p-3 rounded-lg">
                         <AlertCircle className="w-5 h-5 shrink-0" />
                         {error}
                     </div>
                 )}
 
                 <div className="flex flex-col sm:flex-row gap-3">
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="btn btn-primary w-full sm:w-auto"
-                    >
-                        {loading ? <div className="spinner"></div> : <><Save className="w-5 h-5" /> حفظ المنتج</>}
+                    <button type="submit" disabled={saving} className="btn btn-primary w-full sm:w-auto">
+                        {saving ? <div className="spinner"></div> : <><Save className="w-5 h-5" /> حفظ التغييرات</>}
                     </button>
-                    <Link href="/operations/products" className="btn btn-outline w-full sm:w-auto text-center">
-                        إلغاء
-                    </Link>
+                    <Link href="/operations/products" className="btn btn-outline w-full sm:w-auto text-center">إلغاء</Link>
                 </div>
             </form>
         </div>

@@ -244,7 +244,7 @@ export default function RegisterPage() {
                                     type={showPassword ? 'text' : 'password'}
                                     value={formData.password}
                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                    className="input pl-12 text-right"
+                                    className="input pl-20 text-right"
                                     placeholder="8 أحرف على الأقل"
                                     required
                                     minLength={8}
@@ -256,7 +256,7 @@ export default function RegisterPage() {
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    className="absolute left-12 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                                 >
                                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                 </button>
@@ -326,7 +326,7 @@ export default function RegisterPage() {
                                     type={showPassword ? 'text' : 'password'}
                                     value={formData.confirmPassword}
                                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                                    className="input pl-12 text-right"
+                                    className="input pl-20 text-right"
                                     placeholder="أعد إدخال كلمة المرور"
                                     required
                                     dir="auto"
@@ -337,7 +337,7 @@ export default function RegisterPage() {
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    className="absolute left-12 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                                 >
                                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                 </button>

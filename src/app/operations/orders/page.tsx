@@ -3,15 +3,15 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
+    Search,
     Eye,
     Truck,
     User,
     ChevronRight,
     ChevronLeft,
-    RefreshCw,
     UserPlus
 } from 'lucide-react';
-import { formatCurrency, formatRelativeTime, translateOrderStatus, getOrderStatusColor } from '@/lib/utils';
+import { formatCurrency, formatDateTime, translateOrderStatus, getOrderStatusColor } from '@/lib/utils';
 import DriverAssignmentModal from '@/components/admin/DriverAssignmentModal';
 
 interface Order {
@@ -23,14 +23,16 @@ interface Order {
     customer: { name: string; phone: string };
     driver: { id: string; name: string } | null;
     address: { area: string };
+    _count: { items: number };
 }
 
-export default function OperationsOrdersPage() {
+export default function AdminOrdersPage() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [statusFilter, setStatusFilter] = useState('');
+    const [search, setSearch] = useState('');
 
     // Driver Assignment State
     const [driverModalOpen, setDriverModalOpen] = useState(false);
@@ -43,6 +45,7 @@ export default function OperationsOrdersPage() {
                 page: page.toString(),
                 limit: '20',
                 ...(statusFilter && { status: statusFilter }),
+                ...(search && { search }),
             });
 
             const res = await fetch(`/api/orders?${params}`);
@@ -60,22 +63,10 @@ export default function OperationsOrdersPage() {
 
     useEffect(() => {
         fetchOrders();
+        // Poll for updates every 5 seconds
         const interval = setInterval(fetchOrders, 5000);
         return () => clearInterval(interval);
-    }, [page, statusFilter]);
-
-    const updateOrderStatus = async (orderId: string, status: string) => {
-        try {
-            await fetch(`/api/orders/${orderId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status }),
-            });
-            fetchOrders();
-        } catch (error) {
-            console.error('Error updating order:', error);
-        }
-    };
+    }, [page, statusFilter, search]);
 
     const openDriverModal = (order: Order) => {
         setSelectedOrder(order);
@@ -95,6 +86,10 @@ export default function OperationsOrdersPage() {
             if (res.ok) {
                 // Refresh orders
                 fetchOrders();
+                setDriverModalOpen(false); // Close modal on success
+                // Optionally show success message
+            } else {
+                console.error('Failed to assign driver:', await res.json());
             }
         } catch (error) {
             console.error('Error assigning driver:', error);
@@ -102,136 +97,186 @@ export default function OperationsOrdersPage() {
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-secondary-800">إدارة الطلبات</h1>
-                    <p className="text-gray-500">معالجة وتجهيز الطلبات</p>
-                </div>
-                <button onClick={fetchOrders} className="btn btn-outline btn-sm" disabled={loading}>
-                    <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                    تحديث
-                </button>
+        <div className="space-y-4 md:space-y-6">
+            <div>
+                <h1 className="text-xl md:text-2xl font-bold text-secondary-800">إدارة الطلبات</h1>
+                <p className="text-sm text-gray-500">عرض وإدارة جميع الطلبات</p>
             </div>
 
             <div className="card p-4">
-                <div className="flex flex-wrap gap-2">
-                    {['', 'PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'OUT_FOR_DELIVERY', 'DELIVERED'].map((status) => (
-                        <button
-                            key={status}
-                            onClick={() => { setStatusFilter(status); setPage(1); }}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${statusFilter === status
-                                ? 'bg-primary text-secondary'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
-                        >
-                            {status ? translateOrderStatus(status) : 'الكل'}
-                        </button>
-                    ))}
+                <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex-1 relative">
+                        <input
+                            type="text"
+                            placeholder="بحث برقم الطلب..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && fetchOrders()}
+                            className="input pr-10"
+                        />
+                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    </div>
+
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+                        className="input w-auto"
+                    >
+                        <option value="">كل الحالات</option>
+                        <option value="PENDING">معلق</option>
+                        <option value="CONFIRMED">مؤكد</option>
+                        <option value="PREPARING">قيد التجهيز</option>
+                        <option value="READY">جاهز</option>
+                        <option value="OUT_FOR_DELIVERY">في الطريق</option>
+                        <option value="DELIVERED">تم التوصيل</option>
+                        <option value="CANCELLED">ملغي</option>
+                    </select>
                 </div>
             </div>
 
-            {loading ? (
-                <div className="text-center py-12">
-                    <div className="spinner mx-auto"></div>
-                </div>
-            ) : orders.length === 0 ? (
-                <div className="card p-12 text-center text-gray-500">
-                    لا توجد طلبات
-                </div>
-            ) : (
-                <div className="space-y-4">
-                    {orders.map((order) => (
-                        <div key={order.id} className="card p-4">
-                            <div className="flex items-start justify-between gap-4">
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <span className="font-bold text-secondary-800 text-lg">#{order.orderNumber}</span>
+            <div className="card">
+                {/* Mobile Card View */}
+                <div className="md:hidden divide-y divide-gray-100">
+                    {loading ? (
+                        <div className="p-6 text-center">
+                            <div className="spinner mx-auto"></div>
+                        </div>
+                    ) : orders.length === 0 ? (
+                        <div className="p-6 text-center text-gray-500">لا توجد طلبات</div>
+                    ) : (
+                        orders.map((order) => (
+                            <div key={order.id} className="p-4 hover:bg-gray-50">
+                                <Link href={`/operations/orders/${order.id}`} className="block">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="font-bold text-secondary-800">#{order.orderNumber}</span>
                                         <span className={`badge ${getOrderStatusColor(order.status)}`}>
                                             {translateOrderStatus(order.status)}
                                         </span>
                                     </div>
-
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                                        <div>
-                                            <span className="text-gray-500">العميل: </span>
-                                            <span className="text-secondary-800">{order.customer.name}</span>
-                                        </div>
-                                        <div>
-                                            <span className="text-gray-500">المنطقة: </span>
-                                            <span className="text-secondary-800">{order.address.area}</span>
-                                        </div>
-                                        <div>
-                                            <span className="text-gray-500">الإجمالي: </span>
-                                            <span className="text-primary font-bold">{formatCurrency(Number(order.total))}</span>
-                                        </div>
-                                        <div>
-                                            <span className="text-gray-400">{formatRelativeTime(order.createdAt)}</span>
-                                        </div>
+                                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
+                                        <User className="w-4 h-4" />
+                                        <span>{order.customer.name}</span>
+                                        <span className="text-gray-400">•</span>
+                                        <span>{order.address.area}</span>
                                     </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-primary font-bold">{formatCurrency(Number(order.total))}</span>
+                                        <span className="text-xs text-gray-400">{formatDateTime(order.createdAt)}</span>
+                                    </div>
+                                </Link>
+                                <div className="mt-3 flex items-center justify-between pt-3 border-t border-gray-100">
+                                    {order.driver ? (
+                                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                                            <Truck className="w-4 h-4" />
+                                            <span>{order.driver.name}</span>
+                                            <button
+                                                onClick={() => openDriverModal(order)}
+                                                className="text-xs text-primary hover:underline mr-1"
+                                            >
+                                                (تغيير)
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => openDriverModal(order)}
+                                            className="flex items-center gap-1 text-sm text-primary hover:bg-primary/5 px-2 py-1 rounded-lg transition-colors"
+                                        >
+                                            <UserPlus className="w-4 h-4" />
+                                            تعيين سائق
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
 
-                                    <div className="mt-4 flex items-center gap-4 border-t border-gray-100 pt-3">
-                                        {/* Driver Info/Assignment */}
-                                        <div className="flex items-center gap-2">
+                {/* Desktop Table View */}
+                <div className="hidden md:block table-container">
+                    <table className="table">
+                        <thead>
+                            <tr>
+                                <th>رقم الطلب</th>
+                                <th>العميل</th>
+                                <th>المنطقة</th>
+                                <th>المنتجات</th>
+                                <th>الإجمالي</th>
+                                <th>الحالة</th>
+                                <th>السائق</th>
+                                <th>التاريخ</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {loading ? (
+                                <tr>
+                                    <td colSpan={9} className="text-center py-8">
+                                        <div className="spinner mx-auto"></div>
+                                    </td>
+                                </tr>
+                            ) : orders.length === 0 ? (
+                                <tr>
+                                    <td colSpan={9} className="text-center py-8 text-gray-500">
+                                        لا توجد طلبات
+                                    </td>
+                                </tr>
+                            ) : (
+                                orders.map((order) => (
+                                    <tr key={order.id}>
+                                        <td className="font-bold text-secondary-800">#{order.orderNumber}</td>
+                                        <td>
+                                            <div className="flex items-center gap-2">
+                                                <User className="w-4 h-4 text-gray-400" />
+                                                {order.customer.name}
+                                            </div>
+                                        </td>
+                                        <td>{order.address.area}</td>
+                                        <td>{order._count?.items || '-'}</td>
+                                        <td className="font-bold text-primary">{formatCurrency(Number(order.total))}</td>
+                                        <td>
+                                            <span className={`badge ${getOrderStatusColor(order.status)}`}>
+                                                {translateOrderStatus(order.status)}
+                                            </span>
+                                        </td>
+                                        <td>
                                             {order.driver ? (
-                                                <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
-                                                    <Truck className="w-4 h-4 text-gray-500" />
-                                                    <span className="text-sm font-medium">{order.driver.name}</span>
+                                                <div className="flex items-center gap-2 group relative">
+                                                    <Truck className="w-4 h-4 text-gray-400" />
+                                                    <span>{order.driver.name}</span>
                                                     <button
                                                         onClick={() => openDriverModal(order)}
-                                                        className="text-xs text-primary hover:underline mr-1"
+                                                        className="invisible group-hover:visible absolute right-full mr-2 bg-white shadow-md border rounded px-2 py-1 text-xs text-primary whitespace-nowrap z-10"
                                                     >
-                                                        (تغيير)
+                                                        تغيير السائق
                                                     </button>
                                                 </div>
                                             ) : (
                                                 <button
                                                     onClick={() => openDriverModal(order)}
-                                                    className="flex items-center gap-2 bg-primary/5 text-primary px-3 py-1.5 rounded-lg hover:bg-primary/10 transition-colors text-sm font-medium"
+                                                    className="flex items-center gap-1 text-xs text-primary hover:bg-primary/5 px-2 py-1 rounded-lg transition-colors"
                                                 >
-                                                    <UserPlus className="w-4 h-4" />
-                                                    تعيين سائق
+                                                    <UserPlus className="w-3 h-3" />
+                                                    تعيين
                                                 </button>
                                             )}
-                                        </div>
-                                    </div>
-                                </div>
+                                        </td>
+                                        <td className="text-sm text-gray-500">{formatDateTime(order.createdAt)}</td>
+                                        <td>
+                                            <Link href={`/operations/orders/${order.id}`} className="btn btn-ghost btn-sm">
+                                                <Eye className="w-4 h-4" />
+                                            </Link>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
 
-                                <div className="flex items-center gap-2">
-                                    {order.status === 'PENDING' && (
-                                        <button
-                                            onClick={() => updateOrderStatus(order.id, 'CONFIRMED')}
-                                            className="btn btn-sm bg-blue-500 text-white hover:bg-blue-600"
-                                        >
-                                            تأكيد
-                                        </button>
-                                    )}
-                                    {order.status === 'CONFIRMED' && (
-                                        <button
-                                            onClick={() => updateOrderStatus(order.id, 'PREPARING')}
-                                            className="btn btn-sm bg-orange-500 text-white hover:bg-orange-600"
-                                        >
-                                            بدء التجهيز
-                                        </button>
-                                    )}
-                                    {order.status === 'PREPARING' && (
-                                        <button
-                                            onClick={() => updateOrderStatus(order.id, 'READY')}
-                                            className="btn btn-sm bg-cyan-500 text-white hover:bg-cyan-600"
-                                        >
-                                            جاهز
-                                        </button>
-                                    )}
-                                    <Link href={`/operations/orders/${order.id}`} className="btn btn-outline btn-sm">
-                                        <Eye className="w-4 h-4" />
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-
-                    {totalPages > 1 && (
-                        <div className="flex items-center justify-center gap-2">
+                {totalPages > 1 && (
+                    <div className="flex items-center justify-between p-4 border-t border-gray-100">
+                        <span className="text-sm text-gray-500">صفحة {page} من {totalPages}</span>
+                        <div className="flex gap-2">
                             <button
                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                                 disabled={page === 1}
@@ -239,7 +284,6 @@ export default function OperationsOrdersPage() {
                             >
                                 <ChevronRight className="w-4 h-4" />
                             </button>
-                            <span className="px-4 text-sm text-gray-500">{page} / {totalPages}</span>
                             <button
                                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                                 disabled={page === totalPages}
@@ -248,9 +292,9 @@ export default function OperationsOrdersPage() {
                                 <ChevronLeft className="w-4 h-4" />
                             </button>
                         </div>
-                    )}
-                </div>
-            )}
+                    </div>
+                )}
+            </div>
 
             {selectedOrder && (
                 <DriverAssignmentModal

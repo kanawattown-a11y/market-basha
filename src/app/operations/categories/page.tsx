@@ -1,29 +1,28 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { Plus, Edit, Trash2, Tag } from 'lucide-react';
+import { Plus, Edit, Trash2, Tag, GripVertical } from 'lucide-react';
 
 interface Category {
     id: string;
     name: string;
-    description: string | null;
+    image: string | null;
     banner: string | null;
     sortOrder: number;
     isActive: boolean;
     _count: { products: number };
 }
 
-export default function OperationsCategoriesPage() {
+export default function AdminCategoriesPage() {
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
-    const [showModal, setShowModal] = useState(false);
-    const [editCategory, setEditCategory] = useState<Category | null>(null);
-    const [formData, setFormData] = useState({ name: '', description: '', banner: '', sortOrder: 0, isActive: true });
+    const [showForm, setShowForm] = useState(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [formData, setFormData] = useState({ name: '', banner: '', sortOrder: 0, isActive: true });
 
     const fetchCategories = async () => {
         try {
-            const res = await fetch('/api/categories');
+            const res = await fetch('/api/categories?all=true');
             if (res.ok) {
                 const data = await res.json();
                 setCategories(data.categories);
@@ -41,27 +40,37 @@ export default function OperationsCategoriesPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        try {
-            const url = editCategory ? `/api/categories/${editCategory.id}` : '/api/categories';
-            const method = editCategory ? 'PUT' : 'POST';
 
-            await fetch(url, {
+        try {
+            const url = editingId ? `/api/categories/${editingId}` : '/api/categories';
+            const method = editingId ? 'PUT' : 'POST';
+
+            const res = await fetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
             });
 
-            setShowModal(false);
-            setEditCategory(null);
-            setFormData({ name: '', description: '', banner: '', sortOrder: 0, isActive: true });
-            fetchCategories();
+            if (res.ok) {
+                fetchCategories();
+                setShowForm(false);
+                setEditingId(null);
+                setFormData({ name: '', banner: '', sortOrder: 0, isActive: true });
+            }
         } catch (error) {
             console.error('Error saving category:', error);
         }
     };
 
+    const handleEdit = (cat: Category) => {
+        setFormData({ name: cat.name, banner: cat.banner || '', sortOrder: cat.sortOrder, isActive: cat.isActive });
+        setEditingId(cat.id);
+        setShowForm(true);
+    };
+
     const handleDelete = async (id: string) => {
-        if (!confirm('هل أنت متأكد من حذف هذا القسم؟')) return;
+        if (!confirm('هل أنت متأكد من الحذف؟')) return;
+
         try {
             await fetch(`/api/categories/${id}`, { method: 'DELETE' });
             fetchCategories();
@@ -70,45 +79,133 @@ export default function OperationsCategoriesPage() {
         }
     };
 
-    const openEdit = (category: Category) => {
-        setEditCategory(category);
-        setFormData({
-            name: category.name,
-            description: category.description || '',
-            banner: category.banner || '',
-            sortOrder: category.sortOrder,
-            isActive: category.isActive,
-        });
-        setShowModal(true);
-    };
-
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
+        <div className="space-y-4 md:space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-secondary-800">الأقسام</h1>
-                    <p className="text-gray-500">إدارة أقسام المنتجات</p>
+                    <h1 className="text-xl md:text-2xl font-bold text-secondary-800">إدارة الأقسام</h1>
+                    <p className="text-sm text-gray-500">إضافة وتعديل أقسام المنتجات</p>
                 </div>
                 <button
-                    onClick={() => { setEditCategory(null); setFormData({ name: '', description: '', banner: '', sortOrder: 0, isActive: true }); setShowModal(true); }}
-                    className="btn btn-primary"
+                    onClick={() => { setShowForm(true); setEditingId(null); setFormData({ name: '', banner: '', sortOrder: 0, isActive: true }); }}
+                    className="btn btn-primary w-full sm:w-auto"
                 >
                     <Plus className="w-5 h-5" />
                     إضافة قسم
                 </button>
             </div>
 
+            {showForm && (
+                <div className="card p-4 md:p-6">
+                    <h3 className="font-bold text-secondary-800 mb-4">
+                        {editingId ? 'تعديل القسم' : 'إضافة قسم جديد'}
+                    </h3>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">اسم القسم</label>
+                                <input
+                                    type="text"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    className="input"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">رابط البانر</label>
+                                <input
+                                    type="url"
+                                    value={formData.banner}
+                                    onChange={(e) => setFormData({ ...formData, banner: e.target.value })}
+                                    className="input"
+                                    placeholder="https://example.com/image.jpg"
+                                />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">ترتيب العرض</label>
+                                <input
+                                    type="number"
+                                    value={formData.sortOrder}
+                                    onChange={(e) => setFormData({ ...formData, sortOrder: parseInt(e.target.value) })}
+                                    className="input"
+                                />
+                            </div>
+                            <div className="flex items-end">
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.isActive}
+                                        onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                                    />
+                                    <span className="text-sm text-gray-700">نشط</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                            <button type="submit" className="btn btn-primary w-full sm:w-auto">حفظ</button>
+                            <button
+                                type="button"
+                                onClick={() => { setShowForm(false); setEditingId(null); }}
+                                className="btn btn-outline w-full sm:w-auto"
+                            >
+                                إلغاء
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
+
             <div className="card">
-                <div className="table-container">
+                {/* Mobile Card View */}
+                <div className="md:hidden divide-y divide-gray-100">
+                    {loading ? (
+                        <div className="p-6 text-center">
+                            <div className="spinner mx-auto"></div>
+                        </div>
+                    ) : categories.length === 0 ? (
+                        <div className="p-6 text-center text-gray-500">لا توجد أقسام</div>
+                    ) : (
+                        categories.map((cat) => (
+                            <div key={cat.id} className="flex items-center gap-3 p-4">
+                                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
+                                    <Tag className="w-6 h-6 text-primary" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-semibold text-secondary-800 truncate">{cat.name}</p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <span className="text-xs text-gray-500">{cat._count?.products || 0} منتج</span>
+                                        <span className={`badge text-xs ${cat.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                                            {cat.isActive ? 'نشط' : 'غير نشط'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="flex gap-1 shrink-0">
+                                    <button onClick={() => handleEdit(cat)} className="p-2 hover:bg-gray-100 rounded-lg">
+                                        <Edit className="w-4 h-4 text-gray-600" />
+                                    </button>
+                                    <button onClick={() => handleDelete(cat.id)} className="p-2 hover:bg-red-50 rounded-lg">
+                                        <Trash2 className="w-4 h-4 text-red-500" />
+                                    </button>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+
+                {/* Desktop Table View */}
+                <div className="hidden md:block table-container">
                     <table className="table">
                         <thead>
                             <tr>
-                                <th>القسم</th>
-                                <th>الوصف</th>
-                                <th>الترتيب</th>
-                                <th>المنتجات</th>
-                                <th>الحالة</th>
                                 <th></th>
+                                <th>القسم</th>
+                                <th>عدد المنتجات</th>
+                                <th>الترتيب</th>
+                                <th>الحالة</th>
+                                <th>إجراءات</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -127,6 +224,9 @@ export default function OperationsCategoriesPage() {
                             ) : (
                                 categories.map((cat) => (
                                     <tr key={cat.id}>
+                                        <td className="w-10">
+                                            <GripVertical className="w-4 h-4 text-gray-400 cursor-grab" />
+                                        </td>
                                         <td>
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -135,17 +235,16 @@ export default function OperationsCategoriesPage() {
                                                 <span className="font-medium text-secondary-800">{cat.name}</span>
                                             </div>
                                         </td>
-                                        <td className="text-gray-500">{cat.description || '-'}</td>
+                                        <td>{cat._count?.products || 0}</td>
                                         <td>{cat.sortOrder}</td>
-                                        <td>{cat._count.products}</td>
                                         <td>
                                             <span className={`badge ${cat.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                                                {cat.isActive ? 'نشط' : 'معطل'}
+                                                {cat.isActive ? 'نشط' : 'غير نشط'}
                                             </span>
                                         </td>
                                         <td>
-                                            <div className="flex items-center gap-1">
-                                                <button onClick={() => openEdit(cat)} className="btn btn-ghost btn-sm">
+                                            <div className="flex gap-1">
+                                                <button onClick={() => handleEdit(cat)} className="btn btn-ghost btn-sm">
                                                     <Edit className="w-4 h-4" />
                                                 </button>
                                                 <button onClick={() => handleDelete(cat.id)} className="btn btn-ghost btn-sm text-red-500">
@@ -160,72 +259,6 @@ export default function OperationsCategoriesPage() {
                     </table>
                 </div>
             </div>
-
-            {/* Modal */}
-            {showModal && (
-                <div className="modal-backdrop" onClick={() => setShowModal(false)}>
-                    <div className="modal-content p-6" onClick={(e) => e.stopPropagation()}>
-                        <h3 className="text-xl font-bold text-secondary-800 mb-4">
-                            {editCategory ? 'تعديل القسم' : 'إضافة قسم جديد'}
-                        </h3>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label className="label">اسم القسم</label>
-                                <input
-                                    type="text"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="input"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="label">رابط البانر</label>
-                                <input
-                                    type="url"
-                                    value={formData.banner}
-                                    onChange={(e) => setFormData({ ...formData, banner: e.target.value })}
-                                    className="input"
-                                    placeholder="https://"
-                                />
-                            </div>
-                            <div>
-                                <label className="label">الوصف</label>
-                                <textarea
-                                    value={formData.description}
-                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    className="input"
-                                />
-                            </div>
-                            <div>
-                                <label className="label">الترتيب</label>
-                                <input
-                                    type="number"
-                                    value={formData.sortOrder}
-                                    onChange={(e) => setFormData({ ...formData, sortOrder: parseInt(e.target.value) })}
-                                    className="input"
-                                />
-                            </div>
-                            <label className="flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    checked={formData.isActive}
-                                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                                />
-                                <span className="text-sm">قسم نشط</span>
-                            </label>
-                            <div className="flex gap-3 pt-4">
-                                <button type="submit" className="btn btn-primary flex-1">
-                                    {editCategory ? 'تحديث' : 'إضافة'}
-                                </button>
-                                <button type="button" onClick={() => setShowModal(false)} className="btn btn-outline flex-1">
-                                    إلغاء
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

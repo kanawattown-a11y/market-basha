@@ -13,6 +13,7 @@ import {
     Truck,
     CheckCircle,
     XCircle,
+    Printer,
     UserPlus
 } from 'lucide-react';
 import { formatCurrency, formatDateTime, translateOrderStatus, getOrderStatusColor } from '@/lib/utils';
@@ -26,15 +27,16 @@ interface OrderDetail {
     subtotal: number;
     deliveryFee: number;
     discount: number;
+    paymentMethod: string;
     notes: string | null;
     createdAt: string;
-    customer: { name: string; phone: string };
+    customer: { id: string; name: string; phone: string; email: string | null };
     address: { fullAddress: string; area: string; building: string | null; floor: string | null; notes: string | null };
     driver: { id: string; name: string; phone: string } | null;
-    items: { id: string; quantity: number; price: number; product: { name: string; image: string | null } }[];
+    items: { id: string; quantity: number; price: number; product: { name: string; image: string | null; sku: string } }[];
 }
 
-export default function OperationsOrderDetailPage() {
+export default function AdminOrderDetailPage() {
     const params = useParams();
     const id = params.id as string;
     const [order, setOrder] = useState<OrderDetail | null>(null);
@@ -63,13 +65,13 @@ export default function OperationsOrderDetailPage() {
         return () => clearInterval(interval);
     }, [id]);
 
-    const updateStatus = async (status: string) => {
+    const updateOrder = async (data: { status?: string; driverId?: string }) => {
         setUpdating(true);
         try {
             await fetch(`/api/orders/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status }),
+                body: JSON.stringify(data),
             });
             fetchOrder();
         } catch (error) {
@@ -124,56 +126,76 @@ export default function OperationsOrderDetailPage() {
                         <p className="text-sm text-gray-500">{formatDateTime(order.createdAt)}</p>
                     </div>
                 </div>
-                <span className={`badge text-lg px-4 py-2 ${getOrderStatusColor(order.status)}`}>
-                    {translateOrderStatus(order.status)}
-                </span>
+                <div className="flex items-center gap-2">
+                    <span className={`badge text-lg px-4 py-2 ${getOrderStatusColor(order.status)}`}>
+                        {translateOrderStatus(order.status)}
+                    </span>
+                    <button className="btn btn-outline btn-sm" onClick={() => window.print()}>
+                        <Printer className="w-4 h-4" />
+                    </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
                     {/* Items */}
                     <div className="card p-6">
-                        <h3 className="font-bold text-secondary-800 mb-4">المنتجات ({order.items.length})</h3>
-                        <div className="space-y-3">
-                            {order.items.map((item) => (
-                                <div key={item.id} className="flex items-center gap-4">
-                                    <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden relative shrink-0">
-                                        {item.product.image ? (
-                                            <Image src={item.product.image} alt={item.product.name} fill className="object-cover" />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center">
-                                                <Package className="w-8 h-8 text-gray-300" />
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="font-medium text-secondary-800">{item.product.name}</p>
-                                        <p className="text-sm text-gray-500">{item.quantity} × {formatCurrency(Number(item.price))}</p>
-                                    </div>
-                                    <span className="font-bold text-primary">{formatCurrency(Number(item.price) * item.quantity)}</span>
-                                </div>
-                            ))}
+                        <h3 className="font-bold text-secondary-800 mb-4">المنتجات</h3>
+                        <div className="table-container">
+                            <table className="table">
+                                <thead>
+                                    <tr>
+                                        <th>المنتج</th>
+                                        <th>SKU</th>
+                                        <th>الكمية</th>
+                                        <th>السعر</th>
+                                        <th>الإجمالي</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {order.items.map((item) => (
+                                        <tr key={item.id}>
+                                            <td>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden relative shrink-0">
+                                                        {item.product.image ? (
+                                                            <Image src={item.product.image} alt={item.product.name} fill className="object-cover" />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center">
+                                                                <Package className="w-5 h-5 text-gray-300" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    {item.product.name}
+                                                </div>
+                                            </td>
+                                            <td className="font-mono text-sm text-gray-500">{item.product.sku}</td>
+                                            <td>{item.quantity}</td>
+                                            <td>{formatCurrency(Number(item.price))}</td>
+                                            <td className="font-bold">{formatCurrency(Number(item.price) * item.quantity)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
 
-                        <hr className="my-4" />
-
-                        <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
+                        <div className="mt-4 pt-4 border-t space-y-2">
+                            <div className="flex justify-between text-sm">
                                 <span className="text-gray-500">المجموع الفرعي</span>
                                 <span>{formatCurrency(Number(order.subtotal))}</span>
                             </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-500">رسوم التوصيل</span>
+                            <div className="flex justify-between text-sm">
+                                <span className="text-gray-500">التوصيل</span>
                                 <span>{formatCurrency(Number(order.deliveryFee))}</span>
                             </div>
                             {order.discount > 0 && (
-                                <div className="flex justify-between text-green-600">
+                                <div className="flex justify-between text-sm text-green-600">
                                     <span>الخصم</span>
                                     <span>-{formatCurrency(Number(order.discount))}</span>
                                 </div>
                             )}
-                            <hr className="my-2" />
-                            <div className="flex justify-between text-lg font-bold">
+                            <hr />
+                            <div className="flex justify-between font-bold text-lg">
                                 <span>الإجمالي</span>
                                 <span className="text-primary">{formatCurrency(Number(order.total))}</span>
                             </div>
@@ -182,12 +204,37 @@ export default function OperationsOrderDetailPage() {
 
                     {order.notes && (
                         <div className="card p-4 bg-yellow-50 border-yellow-200">
-                            <p className="text-sm font-medium text-yellow-800">ملاحظات العميل:</p>
+                            <p className="text-sm font-medium text-yellow-800">ملاحظات:</p>
                             <p className="text-yellow-700">{order.notes}</p>
                         </div>
                     )}
+                </div>
 
-                    {/* Driver - Moved here or can check below */}
+                <div className="space-y-6">
+                    {/* Customer */}
+                    <div className="card p-6">
+                        <h3 className="font-bold text-secondary-800 mb-4 flex items-center gap-2">
+                            <User className="w-5 h-5" />
+                            العميل
+                        </h3>
+                        <p className="font-medium">{order.customer.name}</p>
+                        <a href={`tel:${order.customer.phone}`} className="text-primary text-sm flex items-center gap-1 mt-1">
+                            <Phone className="w-4 h-4" />
+                            {order.customer.phone}
+                        </a>
+                    </div>
+
+                    {/* Address */}
+                    <div className="card p-6">
+                        <h3 className="font-bold text-secondary-800 mb-4 flex items-center gap-2">
+                            <MapPin className="w-5 h-5" />
+                            العنوان
+                        </h3>
+                        <p className="text-gray-700">{order.address.fullAddress}</p>
+                        <p className="text-sm text-gray-500">{order.address.area}</p>
+                    </div>
+
+                    {/* Driver */}
                     <div className="card p-6">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="font-bold text-secondary-800 flex items-center gap-2">
@@ -223,93 +270,24 @@ export default function OperationsOrderDetailPage() {
                             </div>
                         )}
                     </div>
-                </div>
-
-                <div className="space-y-6">
-                    {/* Customer */}
-                    <div className="card p-6">
-                        <h3 className="font-bold text-secondary-800 mb-4 flex items-center gap-2">
-                            <User className="w-5 h-5" />
-                            العميل
-                        </h3>
-                        <p className="font-medium text-secondary-800">{order.customer.name}</p>
-                        <a href={`tel:${order.customer.phone}`} className="text-primary hover:underline text-sm flex items-center gap-1 mt-1">
-                            <Phone className="w-4 h-4" />
-                            {order.customer.phone}
-                        </a>
-                    </div>
-
-                    {/* Address */}
-                    <div className="card p-6">
-                        <h3 className="font-bold text-secondary-800 mb-4 flex items-center gap-2">
-                            <MapPin className="w-5 h-5" />
-                            عنوان التوصيل
-                        </h3>
-                        <p className="text-gray-700">{order.address.fullAddress}</p>
-                        <p className="text-sm text-gray-500 mt-1">{order.address.area}</p>
-                        {order.address.building && <p className="text-sm text-gray-500">بناء: {order.address.building}</p>}
-                        {order.address.floor && <p className="text-sm text-gray-500">طابق: {order.address.floor}</p>}
-                        {order.address.notes && <p className="text-sm text-primary mt-2">ملاحظة: {order.address.notes}</p>}
-                    </div>
 
                     {/* Actions */}
                     <div className="card p-6 space-y-3">
-                        <h3 className="font-bold text-secondary-800 mb-4">الإجراءات</h3>
-
-                        {order.status === 'PENDING' && (
-                            <>
-                                <button
-                                    onClick={() => updateStatus('CONFIRMED')}
-                                    disabled={updating}
-                                    className="btn btn-primary w-full"
-                                >
-                                    <CheckCircle className="w-5 h-5" />
-                                    تأكيد الطلب
-                                </button>
-                                <button
-                                    onClick={() => updateStatus('CANCELLED')}
-                                    disabled={updating}
-                                    className="btn btn-outline text-red-500 border-red-300 hover:bg-red-50 w-full"
-                                >
-                                    <XCircle className="w-5 h-5" />
-                                    إلغاء الطلب
-                                </button>
-                            </>
-                        )}
-
-                        {order.status === 'CONFIRMED' && (
-                            <button
-                                onClick={() => updateStatus('PREPARING')}
-                                disabled={updating}
-                                className="btn btn-primary w-full"
-                            >
-                                <Package className="w-5 h-5" />
-                                بدء التجهيز
-                            </button>
-                        )}
-
-                        {order.status === 'PREPARING' && (
-                            <button
-                                onClick={() => updateStatus('READY')}
-                                disabled={updating}
-                                className="btn btn-primary w-full"
-                            >
-                                <Truck className="w-5 h-5" />
-                                جاهز للتوصيل
-                            </button>
-                        )}
-
-                        {order.status === 'READY' && (
-                            <button
-                                onClick={() => updateStatus('OUT_FOR_DELIVERY')}
-                                disabled={updating || !order.driver}
-                                className="btn btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
-                                title={!order.driver ? 'يجب تعيين سائق أولاً' : ''}
-                            >
-                                <Truck className="w-5 h-5" />
-                                بدء التوصيل
-                            </button>
-                        )}
+                        <h3 className="font-bold text-secondary-800 mb-4">تغيير الحالة</h3>
+                        <select
+                            value={order.status}
+                            onChange={(e) => updateOrder({ status: e.target.value })}
+                            className="input"
+                            disabled={updating}
+                        >
+                            <option value="PENDING">معلق</option>
+                            <option value="CONFIRMED">مؤكد</option>
+                            <option value="PREPARING">قيد التجهيز</option>
+                            <option value="READY">جاهز</option>
+                            <option value="OUT_FOR_DELIVERY">في الطريق</option>
+                            <option value="DELIVERED">تم التوصيل</option>
+                            <option value="CANCELLED">ملغي</option>
+                        </select>
                     </div>
                 </div>
             </div>
