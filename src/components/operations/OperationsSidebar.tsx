@@ -13,7 +13,8 @@ import {
     X,
     Menu,
     Tag,
-    Gift
+    Gift,
+    Truck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -34,6 +35,7 @@ const menuItems = [
     { href: '/operations/products', label: 'المنتجات', icon: Package },
     { href: '/operations/categories', label: 'الأقسام', icon: Tag },
     { href: '/operations/offers', label: 'العروض', icon: Gift },
+    { href: '/operations/drivers', label: 'السائقون', icon: Truck },
     { href: '/operations/tickets', label: 'التذاكر', icon: Ticket },
 ];
 

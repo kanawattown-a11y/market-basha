@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { ShoppingCart, User, Search, Menu, X, LogOut, Package, MapPin, Settings, LayoutDashboard, Truck, Ticket, Heart, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useCart } from '@/contexts/CartContext';
 
 interface HeaderProps {
     className?: string;
@@ -12,9 +13,11 @@ interface HeaderProps {
 
 export default function Header({ className, onCartClick }: HeaderProps) {
     const [user, setUser] = useState<{ name: string; role: string } | null>(null);
-    const [cartCount, setCartCount] = useState(0);
     const [showMobileMenu, setShowMobileMenu] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
+
+    // Use cart context for real-time updates
+    const { cartCount } = useCart();
 
     useEffect(() => {
         // Fetch user session
@@ -30,27 +33,7 @@ export default function Header({ className, onCartClick }: HeaderProps) {
             }
         };
 
-        // Get cart count
-        const updateCartCount = () => {
-            if (typeof window !== 'undefined') {
-                const savedCart = localStorage.getItem('cart');
-                if (savedCart) {
-                    try {
-                        const cart = JSON.parse(savedCart);
-                        setCartCount(cart.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0));
-                    } catch {
-                        setCartCount(0);
-                    }
-                }
-            }
-        };
-
         fetchUser();
-        updateCartCount();
-
-        // Listen for cart updates
-        window.addEventListener('storage', updateCartCount);
-        return () => window.removeEventListener('storage', updateCartCount);
     }, []);
 
     const handleLogout = async () => {

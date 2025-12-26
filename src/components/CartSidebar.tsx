@@ -4,11 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ShoppingCart, X, Plus, Minus, Trash2, Package } from 'lucide-react';
 import { formatCurrency, cn } from '@/lib/utils';
-import { Product } from './ProductCard';
-
-interface CartItem extends Product {
-    quantity: number;
-}
+import { CartItem } from '@/contexts/CartContext';
 
 interface CartSidebarProps {
     items: CartItem[];

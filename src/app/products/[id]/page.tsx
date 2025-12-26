@@ -18,6 +18,7 @@ import {
 import { formatCurrency, cn } from '@/lib/utils';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { useCart } from '@/contexts/CartContext';
 
 interface Product {
     id: string;
@@ -68,28 +69,20 @@ export default function ProductDetailPage() {
         setIsFav(favs.includes(id));
     }, [id]);
 
-    const addToCart = () => {
+    // Cart Context
+    const { addToCart: contextAddToCart } = useCart();
+
+    const handleAddToCart = () => {
         if (!product) return;
 
-        const savedCart = localStorage.getItem('cart');
-        const cart = savedCart ? JSON.parse(savedCart) : [];
+        contextAddToCart({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            image: product.image,
+            stock: product.stock,
+        });
 
-        const existing = cart.find((item: { id: string }) => item.id === product.id);
-        if (existing) {
-            existing.quantity += quantity;
-        } else {
-            cart.push({
-                id: product.id,
-                name: product.name,
-                price: product.price,
-                image: product.image,
-                quantity,
-                stock: product.stock,
-            });
-        }
-
-        localStorage.setItem('cart', JSON.stringify(cart));
-        window.dispatchEvent(new Event('storage')); // Notify header
         setAddedToCart(true);
         setTimeout(() => setAddedToCart(false), 2000);
     };
@@ -286,7 +279,7 @@ export default function ProductDetailPage() {
                         {/* Add to Cart */}
                         <div className="flex gap-4 pt-4">
                             <button
-                                onClick={addToCart}
+                                onClick={handleAddToCart}
                                 disabled={product.stock === 0}
                                 className={cn(
                                     "btn btn-xl flex-1 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1",

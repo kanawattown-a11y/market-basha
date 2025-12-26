@@ -79,6 +79,10 @@ model User {
   isAvailable   Boolean    @default(true)
   
   areNotificationsEnabled Boolean @default(true) // Added notification setting
+  
+  // منطقة التخديم للمستخدم
+  serviceAreaId String?
+  serviceArea   ServiceArea? @relation(fields: [serviceAreaId], references: [id])
 
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
@@ -101,6 +105,7 @@ model User {
   @@index([status])
   @@index([phone])
   @@index([email])
+  @@index([serviceAreaId])
 }
 
 model Address {
@@ -134,6 +139,10 @@ model ServiceArea {
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  
+  // العلاقات
+  users       User[]
+  products    ProductServiceArea[]
   
   @@index([isActive])
 }
@@ -198,12 +207,25 @@ model Product {
   
   orderItems      OrderItem[]
   offerProducts   OfferProduct[]
+  serviceAreas    ProductServiceArea[]
   
   @@index([categoryId])
   @@index([isActive])
   @@index([isFeatured])
   @@index([stock])
   @@index([name])
+}
+
+model ProductServiceArea {
+  id            String       @id @default(cuid())
+  productId     String
+  product       Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  serviceAreaId String
+  serviceArea   ServiceArea  @relation(fields: [serviceAreaId], references: [id], onDelete: Cascade)
+  
+  @@unique([productId, serviceAreaId])
+  @@index([productId])
+  @@index([serviceAreaId])
 }
 
 model Offer {

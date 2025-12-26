@@ -1,10 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff, UserPlus, Phone, Mail, Lock, User } from 'lucide-react';
+import { Eye, EyeOff, UserPlus, Phone, Mail, Lock, User, MapPin } from 'lucide-react';
+
+interface ServiceArea {
+    id: string;
+    name: string;
+}
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -14,11 +19,29 @@ export default function RegisterPage() {
         email: '',
         password: '',
         confirmPassword: '',
+        serviceAreaId: '',
     });
+    const [serviceAreas, setServiceAreas] = useState<ServiceArea[]>([]);
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
+
+    // Fetch service areas on mount
+    useEffect(() => {
+        const fetchAreas = async () => {
+            try {
+                const res = await fetch('/api/service-areas?active=true');
+                if (res.ok) {
+                    const data = await res.json();
+                    setServiceAreas(data.areas || []);
+                }
+            } catch (e) {
+                console.error('Error fetching service areas:', e);
+            }
+        };
+        fetchAreas();
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -26,6 +49,11 @@ export default function RegisterPage() {
 
         if (formData.password !== formData.confirmPassword) {
             setError('كلمات المرور غير متطابقة');
+            return;
+        }
+
+        if (!formData.serviceAreaId) {
+            setError('يرجى اختيار منطقة التخديم');
             return;
         }
 
@@ -41,6 +69,7 @@ export default function RegisterPage() {
                     email: formData.email || undefined,
                     password: formData.password,
                     confirmPassword: formData.confirmPassword,
+                    serviceAreaId: formData.serviceAreaId,
                 }),
             });
 
@@ -166,6 +195,29 @@ export default function RegisterPage() {
                                     صيغة الرقم صحيحة
                                 </p>
                             )}
+                        </div>
+
+                        <div>
+                            <label className="label">منطقة التخديم *</label>
+                            <div className="relative">
+                                <select
+                                    value={formData.serviceAreaId}
+                                    onChange={(e) => setFormData({ ...formData, serviceAreaId: e.target.value })}
+                                    className="input pl-12 text-right appearance-none"
+                                    required
+                                >
+                                    <option value="">اختر منطقتك</option>
+                                    {serviceAreas.map(area => (
+                                        <option key={area.id} value={area.id}>{area.name}</option>
+                                    ))}
+                                </select>
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                                    <MapPin className="w-5 h-5" />
+                                </div>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1 mr-1">
+                                ستظهر لك المنتجات المتوفرة في منطقتك فقط
+                            </p>
                         </div>
 
                         <div>

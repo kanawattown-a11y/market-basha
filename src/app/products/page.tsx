@@ -17,6 +17,7 @@ import {
 import { formatCurrency, cn } from '@/lib/utils';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { useCart } from '@/contexts/CartContext';
 
 interface Product {
     id: string;
@@ -51,63 +52,16 @@ function ProductsContent() {
     const [selectedCategory, setSelectedCategory] = useState(categoryParam || '');
     const [showFilters, setShowFilters] = useState(false);
 
-    // Cart State
+    // Cart from Context
+    const { items: cartItems, addToCart, updateQuantity, removeFromCart } = useCart();
     const [isCartOpen, setIsCartOpen] = useState(false);
-    const [cart, setCart] = useState<{ id: string; quantity: number }[]>([]);
-
-    useEffect(() => {
-        const savedCart = localStorage.getItem('cart');
-        if (savedCart) {
-            setCart(JSON.parse(savedCart));
-        }
-
-        const handleStorage = () => {
-            const saved = localStorage.getItem('cart');
-            if (saved) setCart(JSON.parse(saved));
-        };
-        window.addEventListener('storage', handleStorage);
-        return () => window.removeEventListener('storage', handleStorage);
-    }, []);
 
     const router = useRouter();
 
-    const updateCartQuantity = (id: string, quantity: number) => {
-        const newCart = cart.map(item => {
-            if (item.id === id) return { ...item, quantity };
-            return item;
-        });
-        setCart(newCart);
-        localStorage.setItem('cart', JSON.stringify(newCart));
-        window.dispatchEvent(new Event('storage'));
-    };
-
-    const removeFromCart = (id: string) => {
-        const newCart = cart.filter(item => item.id !== id);
-        setCart(newCart);
-        localStorage.setItem('cart', JSON.stringify(newCart));
-        window.dispatchEvent(new Event('storage'));
-    };
-
-
-
-    const addToCart = (product: Product) => {
-        const newCart = [...cart];
-        const existing = newCart.find(item => item.id === product.id);
-        if (existing) {
-            existing.quantity += 1;
-            // Update details just in case
-            // existing.name = product.name; ...
-        } else {
-            newCart.push({ ...product, quantity: 1 });
-        }
-        setCart(newCart);
-        localStorage.setItem('cart', JSON.stringify(newCart));
-        window.dispatchEvent(new Event('storage'));
+    const handleAddToCart = (product: Product) => {
+        addToCart(product);
         setIsCartOpen(true);
     };
-
-    // Cart items are now self-contained in state
-    const cartItems = cart;
 
 
 

@@ -19,6 +19,24 @@ export async function GET(request: NextRequest) {
 
         const ids = searchParams.get('ids');
 
+        // Optional: allow filtering by specific service area (for guests or explicit choice)
+        const serviceAreaParam = searchParams.get('serviceArea');
+
+        // Get current user to filter by their service area
+        const user = await getSession();
+        let userServiceAreaId: string | null = null;
+
+        if (user?.id) {
+            const fullUser = await prisma.user.findUnique({
+                where: { id: user.id },
+                select: { serviceAreaId: true }
+            });
+            userServiceAreaId = fullUser?.serviceAreaId || null;
+        }
+
+        // Determine which service area to filter by
+        const filterAreaId = serviceAreaParam || userServiceAreaId;
+
         const where: Record<string, unknown> = {
             isActive: true,
         };
@@ -28,6 +46,15 @@ export async function GET(request: NextRequest) {
             if (idsArray.length > 0) {
                 where.id = { in: idsArray };
             }
+        }
+
+        // Filter by service area if user has one or if specified in query
+        if (filterAreaId) {
+            where.serviceAreas = {
+                some: {
+                    serviceAreaId: filterAreaId
+                }
+            };
         }
 
         if (category) where.categoryId = category;
@@ -46,6 +73,13 @@ export async function GET(request: NextRequest) {
                     category: {
                         select: { id: true, name: true },
                     },
+                    serviceAreas: {
+                        include: {
+                            serviceArea: {
+                                select: { id: true, name: true }
+                            }
+                        }
+                    }
                 },
                 orderBy: { [sortBy]: sortOrder },
                 skip: (page - 1) * limit,
@@ -62,6 +96,7 @@ export async function GET(request: NextRequest) {
                 total,
                 totalPages: Math.ceil(total / limit),
             },
+            userServiceAreaId: filterAreaId,
         });
     } catch (error) {
         console.error('Get products error:', error);

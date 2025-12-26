@@ -20,6 +20,7 @@ export const registerSchema = z.object({
         .regex(/[a-z]/, 'يجب أن تحتوي على حرف صغير')
         .regex(/[0-9]/, 'يجب أن تحتوي على رقم'),
     confirmPassword: z.string(),
+    serviceAreaId: z.string().min(1, 'يرجى اختيار منطقة التخديم'),
 }).refine((data) => data.password === data.confirmPassword, {
     message: 'كلمات المرور غير متطابقة',
     path: ['confirmPassword'],

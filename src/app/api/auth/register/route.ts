@@ -16,10 +16,10 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { name, phone, email, password } = validationResult.data;
+        const { name, phone, email, password, serviceAreaId } = validationResult.data;
 
         // Attempt registration
-        const result = await register({ name, phone, email, password });
+        const result = await register({ name, phone, email, password, serviceAreaId });
 
         if (!result.success) {
             return NextResponse.json(

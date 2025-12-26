@@ -91,9 +91,24 @@ export async function PUT(
 
         const { id } = await params;
 
-        // Users can only update their own profile unless admin
+        // Users can only update their own profile unless admin/operations
         const isAdmin = currentUser.role === 'ADMIN';
-        if (!isAdmin && currentUser.id !== id) {
+        const isOperations = currentUser.role === 'OPERATIONS';
+
+        // Get target user to check if it's a driver (for Operations access)
+        const targetUser = await prisma.user.findUnique({ where: { id }, select: { role: true } });
+
+        if (!targetUser) {
+            return NextResponse.json(
+                { message: 'المستخدم غير موجود' },
+                { status: 404 }
+            );
+        }
+
+        // Operations can only manage drivers
+        const canOperationsManage = isOperations && targetUser.role === 'DRIVER';
+
+        if (!isAdmin && !canOperationsManage && currentUser.id !== id) {
             return NextResponse.json(
                 { message: 'غير مصرح لك بهذا الإجراء' },
                 { status: 403 }

@@ -7,53 +7,20 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ProductCard, { Product } from '@/components/ProductCard';
 import CartSidebar from '@/components/CartSidebar';
+import { useCart } from '@/contexts/CartContext';
 
 export default function FavoritesPage() {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
-    const [cart, setCart] = useState<any[]>([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
 
-    // Cart Logic (Duplicated for now, ideally extracted to context)
-    useEffect(() => {
-        const savedCart = localStorage.getItem('cart');
-        if (savedCart) {
-            setCart(JSON.parse(savedCart));
-        }
-    }, []);
+    // Use Cart Context
+    const { items: cartItems, addToCart, updateQuantity, removeFromCart } = useCart();
 
-    const addToCart = (product: Product) => {
-        const newCart = [...cart];
-        const existing = newCart.find(item => item.id === product.id);
-        if (existing) {
-            existing.quantity += 1;
-        } else {
-            newCart.push({ ...product, quantity: 1 } as any);
-        }
-        setCart(newCart);
-        localStorage.setItem('cart', JSON.stringify(newCart));
-        window.dispatchEvent(new Event('storage'));
+    const handleAddToCart = (product: Product) => {
+        addToCart(product);
         setIsCartOpen(true);
     };
-
-    const updateCartQuantity = (id: string, quantity: number) => {
-        const newCart = cart.map(item => {
-            if (item.id === id) return { ...item, quantity };
-            return item;
-        });
-        setCart(newCart);
-        localStorage.setItem('cart', JSON.stringify(newCart));
-        window.dispatchEvent(new Event('storage'));
-    };
-
-    const removeFromCart = (id: string) => {
-        const newCart = cart.filter(item => item.id !== id);
-        setCart(newCart);
-        localStorage.setItem('cart', JSON.stringify(newCart));
-        window.dispatchEvent(new Event('storage'));
-    };
-
-    const cartItems = cart;
 
     // Fetch Favorites
     useEffect(() => {
@@ -139,7 +106,7 @@ export default function FavoritesPage() {
                             <ProductCard
                                 key={product.id}
                                 product={product}
-                                onAddToCart={addToCart}
+                                onAddToCart={handleAddToCart}
                             />
                         ))}
                     </div>
@@ -152,7 +119,7 @@ export default function FavoritesPage() {
                 items={cartItems}
                 isOpen={isCartOpen}
                 onClose={() => setIsCartOpen(false)}
-                onUpdateQuantity={updateCartQuantity}
+                onUpdateQuantity={updateQuantity}
                 onRemove={removeFromCart}
             />
         </div>

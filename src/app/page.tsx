@@ -33,6 +33,7 @@ import {
     Check
 } from 'lucide-react';
 import { formatCurrency, cn } from '@/lib/utils';
+import { useCart } from '@/contexts/CartContext';
 
 // Types
 interface Product {
@@ -252,7 +253,7 @@ function FeaturesSection() {
 
 // Main Home Page Component
 export default function HomePage() {
-    const [cartItems, setCartItems] = useState<CartItem[]>([]);
+    const { items: cartItems, addToCart, updateQuantity, removeFromCart } = useCart();
     const [cartOpen, setCartOpen] = useState(false);
     const [products, setProducts] = useState<Product[]>([]);
     const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
@@ -301,53 +302,11 @@ export default function HomePage() {
         };
 
         fetchData();
-
-        // Load cart from localStorage - only on client
-        if (typeof window !== 'undefined') {
-            const savedCart = localStorage.getItem('cart');
-            if (savedCart) {
-                try {
-                    setCartItems(JSON.parse(savedCart));
-                } catch (e) {
-                    console.error('Error parsing cart:', e);
-                }
-            }
-        }
     }, []);
 
-    // Save cart to localStorage
-    useEffect(() => {
-        if (typeof window !== 'undefined' && cartItems.length > 0) {
-            localStorage.setItem('cart', JSON.stringify(cartItems));
-        }
-    }, [cartItems]);
-
-    const addToCart = (product: Product) => {
-        setCartItems(prev => {
-            const existing = prev.find(item => item.id === product.id);
-            if (existing) {
-                return prev.map(item =>
-                    item.id === product.id
-                        ? { ...item, quantity: Math.min(item.quantity + 1, item.stock) }
-                        : item
-                );
-            }
-            return [...prev, { ...product, quantity: 1 }];
-        });
+    const handleAddToCart = (product: Product) => {
+        addToCart(product);
         setCartOpen(true);
-    };
-
-    const updateQuantity = (id: string, quantity: number) => {
-        if (quantity < 1) return;
-        setCartItems(prev =>
-            prev.map(item =>
-                item.id === id ? { ...item, quantity } : item
-            )
-        );
-    };
-
-    const removeFromCart = (id: string) => {
-        setCartItems(prev => prev.filter(item => item.id !== id));
     };
 
     if (loading) {
@@ -427,7 +386,7 @@ export default function HomePage() {
                                 <ProductCard
                                     key={product.id}
                                     product={product}
-                                    onAddToCart={addToCart}
+                                    onAddToCart={handleAddToCart}
                                 />
                             ))}
                         </div>

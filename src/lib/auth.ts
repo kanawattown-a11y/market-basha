@@ -21,6 +21,7 @@ export interface SessionUser {
     role: UserRole;
     status: UserStatus;
     avatar: string | null;
+    serviceAreaId: string | null;
 }
 
 // تشفير كلمة المرور
@@ -77,6 +78,7 @@ export async function getSession(): Promise<SessionUser | null> {
                 role: true,
                 status: true,
                 avatar: true,
+                serviceAreaId: true,
             },
         });
 
@@ -156,6 +158,7 @@ export async function login(identifier: string, password: string): Promise<{ suc
                 role: user.role,
                 status: user.status,
                 avatar: user.avatar,
+                serviceAreaId: user.serviceAreaId,
             },
         };
     } catch (error) {
@@ -176,6 +179,7 @@ export async function register(data: {
     email?: string;
     phone: string;
     password: string;
+    serviceAreaId: string;
 }): Promise<{ success: boolean; message: string }> {
     try {
         // التحقق من عدم وجود المستخدم
@@ -204,6 +208,7 @@ export async function register(data: {
                 password: hashedPassword,
                 role: 'USER',
                 status: 'PENDING',
+                serviceAreaId: data.serviceAreaId,
             },
         });
 

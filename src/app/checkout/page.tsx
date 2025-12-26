@@ -15,6 +15,7 @@ import {
     Check
 } from 'lucide-react';
 import { formatCurrency, cn } from '@/lib/utils';
+import { useCart } from '@/contexts/CartContext';
 
 interface Address {
     id: string;
@@ -40,6 +41,7 @@ interface ServiceArea {
 
 export default function CheckoutPage() {
     const router = useRouter();
+    const { clearCart } = useCart();
     const [addresses, setAddresses] = useState<Address[]>([]);
     const [selectedAddressId, setSelectedAddressId] = useState<string>('');
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -148,8 +150,8 @@ export default function CheckoutPage() {
                 return;
             }
 
-            // Clear cart
-            localStorage.removeItem('cart');
+            // Clear cart using context
+            clearCart();
 
             // Redirect to order tracking
             router.push(`/orders/${data.order.id}?success=true`);
