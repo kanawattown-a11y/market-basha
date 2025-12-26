@@ -148,6 +148,17 @@ export async function POST(request: NextRequest) {
             },
         });
 
+        // Create service area relations if provided
+        const serviceAreaIds = body.serviceAreaIds as string[] | undefined;
+        if (serviceAreaIds && serviceAreaIds.length > 0) {
+            await prisma.productServiceArea.createMany({
+                data: serviceAreaIds.map(areaId => ({
+                    productId: product.id,
+                    serviceAreaId: areaId,
+                })),
+            });
+        }
+
         // Check low stock
         if (product.trackStock && product.stock <= product.lowStockThreshold) {
             await notifyLowStock(product.id, product.name, product.stock);
@@ -159,7 +170,7 @@ export async function POST(request: NextRequest) {
             action: 'CREATE',
             entity: 'Product',
             entityId: product.id,
-            newData: data as Record<string, unknown>,
+            newData: { ...data, serviceAreaIds } as Record<string, unknown>,
         });
 
         return NextResponse.json({

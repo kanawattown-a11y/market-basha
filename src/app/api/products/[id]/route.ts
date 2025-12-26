@@ -21,6 +21,13 @@ export async function GET(
                 createdBy: {
                     select: { id: true, name: true },
                 },
+                serviceAreas: {
+                    include: {
+                        serviceArea: {
+                            select: { id: true, name: true }
+                        }
+                    }
+                },
             },
         });
 
@@ -86,6 +93,24 @@ export async function PUT(
             },
         });
 
+        // Sync service area relations if provided
+        const serviceAreaIds = body.serviceAreaIds as string[] | undefined;
+        if (serviceAreaIds !== undefined) {
+            // Delete existing relations
+            await prisma.productServiceArea.deleteMany({
+                where: { productId: id }
+            });
+            // Create new relations
+            if (serviceAreaIds.length > 0) {
+                await prisma.productServiceArea.createMany({
+                    data: serviceAreaIds.map(areaId => ({
+                        productId: id,
+                        serviceAreaId: areaId,
+                    })),
+                });
+            }
+        }
+
         // Check low stock
         if (product.trackStock && product.stock <= product.lowStockThreshold) {
             await notifyLowStock(product.id, product.name, product.stock);
@@ -98,7 +123,7 @@ export async function PUT(
             entity: 'Product',
             entityId: product.id,
             oldData: oldProduct as unknown as Record<string, unknown>,
-            newData: data as Record<string, unknown>,
+            newData: { ...data, serviceAreaIds } as Record<string, unknown>,
         });
 
         return NextResponse.json({

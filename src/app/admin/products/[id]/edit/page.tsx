@@ -10,6 +10,11 @@ interface Category {
     name: string;
 }
 
+interface ServiceArea {
+    id: string;
+    name: string;
+}
+
 export default function EditProductPage() {
     const params = useParams();
     const id = params.id as string;
@@ -18,6 +23,8 @@ export default function EditProductPage() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
     const [categories, setCategories] = useState<Category[]>([]);
+    const [serviceAreas, setServiceAreas] = useState<ServiceArea[]>([]);
+    const [selectedAreaIds, setSelectedAreaIds] = useState<string[]>([]);
     const [images, setImages] = useState<string[]>([]);
     const [mainImageIndex, setMainImageIndex] = useState(0);
     const [uploading, setUploading] = useState(false);
@@ -39,9 +46,10 @@ export default function EditProductPage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [productRes, catsRes] = await Promise.all([
+                const [productRes, catsRes, areasRes] = await Promise.all([
                     fetch(`/api/products/${id}`),
                     fetch('/api/categories'),
+                    fetch('/api/service-areas?active=true'),
                 ]);
 
                 if (productRes.ok) {
@@ -70,12 +78,23 @@ export default function EditProductPage() {
                         allImages.push(...data.product.images);
                     }
                     setImages(allImages);
-                    setMainImageIndex(0); // First image is main by default
+                    setMainImageIndex(0);
+
+                    // Load existing service areas
+                    if (data.product.serviceAreas && Array.isArray(data.product.serviceAreas)) {
+                        const areaIds = data.product.serviceAreas.map((sa: { serviceArea: { id: string } }) => sa.serviceArea.id);
+                        setSelectedAreaIds(areaIds);
+                    }
                 }
 
                 if (catsRes.ok) {
                     const data = await catsRes.json();
                     setCategories(data.categories);
+                }
+
+                if (areasRes.ok) {
+                    const data = await areasRes.json();
+                    setServiceAreas(data.areas || []);
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -157,6 +176,7 @@ export default function EditProductPage() {
                     ...formData,
                     image: mainImage,
                     images: additionalImages,
+                    serviceAreaIds: selectedAreaIds,
                 }),
             });
 
@@ -361,6 +381,40 @@ export default function EditProductPage() {
                                 <option value="عبوة">عبوة</option>
                                 <option value="ربطة">ربطة</option>
                             </select>
+                        </div>
+
+                        {/* مناطق التخديم */}
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">مناطق التخديم</label>
+                            <p className="text-xs text-gray-500 mb-2">اختر المناطق التي يتوفر فيها هذا المنتج</p>
+                            <div className="flex flex-wrap gap-2">
+                                {serviceAreas.map((area) => (
+                                    <label
+                                        key={area.id}
+                                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-colors ${selectedAreaIds.includes(area.id)
+                                                ? 'bg-primary text-white border-primary'
+                                                : 'bg-gray-50 hover:bg-gray-100 border-gray-200'
+                                            }`}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedAreaIds.includes(area.id)}
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    setSelectedAreaIds([...selectedAreaIds, area.id]);
+                                                } else {
+                                                    setSelectedAreaIds(selectedAreaIds.filter(id => id !== area.id));
+                                                }
+                                            }}
+                                            className="sr-only"
+                                        />
+                                        <span className="text-sm">{area.name}</span>
+                                    </label>
+                                ))}
+                            </div>
+                            {serviceAreas.length === 0 && (
+                                <p className="text-sm text-yellow-600 mt-2">⚠️ لا توجد مناطق تخديم متاحة</p>
+                            )}
                         </div>
                     </div>
                 </div>

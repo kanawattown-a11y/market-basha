@@ -10,14 +10,21 @@ interface Category {
     name: string;
 }
 
+interface ServiceArea {
+    id: string;
+    name: string;
+}
+
 export default function NewProductPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [categories, setCategories] = useState<Category[]>([]);
+    const [serviceAreas, setServiceAreas] = useState<ServiceArea[]>([]);
     const [images, setImages] = useState<string[]>([]);
     const [mainImageIndex, setMainImageIndex] = useState(0);
     const [uploading, setUploading] = useState(false);
+    const [selectedAreaIds, setSelectedAreaIds] = useState<string[]>([]);
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -33,18 +40,26 @@ export default function NewProductPage() {
     });
 
     useEffect(() => {
-        const fetchCategories = async () => {
+        const fetchData = async () => {
             try {
-                const res = await fetch('/api/categories');
-                if (res.ok) {
-                    const data = await res.json();
+                const [catRes, areasRes] = await Promise.all([
+                    fetch('/api/categories'),
+                    fetch('/api/service-areas?active=true')
+                ]);
+
+                if (catRes.ok) {
+                    const data = await catRes.json();
                     setCategories(data.categories);
                 }
+                if (areasRes.ok) {
+                    const data = await areasRes.json();
+                    setServiceAreas(data.areas || []);
+                }
             } catch (error) {
-                console.error('Error fetching categories:', error);
+                console.error('Error fetching data:', error);
             }
         };
-        fetchCategories();
+        fetchData();
     }, []);
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -119,6 +134,7 @@ export default function NewProductPage() {
                     ...formData,
                     image: mainImage,
                     images: additionalImages,
+                    serviceAreaIds: selectedAreaIds,
                 }),
             });
 
@@ -159,8 +175,8 @@ export default function NewProductPage() {
                                     <div
                                         key={index}
                                         className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all ${mainImageIndex === index
-                                                ? 'border-primary ring-2 ring-primary/30'
-                                                : 'border-gray-200 hover:border-gray-300'
+                                            ? 'border-primary ring-2 ring-primary/30'
+                                            : 'border-gray-200 hover:border-gray-300'
                                             }`}
                                     >
                                         <img
@@ -291,6 +307,40 @@ export default function NewProductPage() {
                                 <option value="عبوة">عبوة</option>
                                 <option value="ربطة">ربطة</option>
                             </select>
+                        </div>
+
+                        {/* مناطق التخديم */}
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">مناطق التخديم *</label>
+                            <p className="text-xs text-gray-500 mb-2">اختر المناطق التي يتوفر فيها هذا المنتج</p>
+                            <div className="flex flex-wrap gap-2">
+                                {serviceAreas.map((area) => (
+                                    <label
+                                        key={area.id}
+                                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-colors ${selectedAreaIds.includes(area.id)
+                                                ? 'bg-primary text-white border-primary'
+                                                : 'bg-gray-50 hover:bg-gray-100 border-gray-200'
+                                            }`}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedAreaIds.includes(area.id)}
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    setSelectedAreaIds([...selectedAreaIds, area.id]);
+                                                } else {
+                                                    setSelectedAreaIds(selectedAreaIds.filter(id => id !== area.id));
+                                                }
+                                            }}
+                                            className="sr-only"
+                                        />
+                                        <span className="text-sm">{area.name}</span>
+                                    </label>
+                                ))}
+                            </div>
+                            {serviceAreas.length === 0 && (
+                                <p className="text-sm text-yellow-600 mt-2">⚠️ لا توجد مناطق تخديم. يرجى إضافة مناطق أولاً.</p>
+                            )}
                         </div>
                     </div>
                 </div>
