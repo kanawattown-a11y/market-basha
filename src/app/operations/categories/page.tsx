@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Tag, GripVertical } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Plus, Edit, Trash2, Tag, GripVertical, Upload, X, Image as ImageIcon } from 'lucide-react';
+import Image from 'next/image';
 
 interface Category {
     id: string;
@@ -13,12 +14,15 @@ interface Category {
     _count: { products: number };
 }
 
-export default function AdminCategoriesPage() {
+export default function OperationsCategoriesPage() {
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [formData, setFormData] = useState({ name: '', banner: '', sortOrder: 0, isActive: true });
+    const [uploading, setUploading] = useState(false);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const fetchCategories = async () => {
         try {
@@ -38,6 +42,54 @@ export default function AdminCategoriesPage() {
         fetchCategories();
     }, []);
 
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Show preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setImagePreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+
+        // Upload to S3
+        setUploading(true);
+        try {
+            const formDataUpload = new FormData();
+            formDataUpload.append('file', file);
+            formDataUpload.append('folder', 'categories');
+
+            const res = await fetch('/api/upload', {
+                method: 'POST',
+                body: formDataUpload,
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setFormData(prev => ({ ...prev, banner: data.url }));
+            } else {
+                const error = await res.json();
+                alert(error.message || 'فشل رفع الصورة');
+                setImagePreview(null);
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            alert('حدث خطأ أثناء رفع الصورة');
+            setImagePreview(null);
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const handleRemoveImage = () => {
+        setFormData(prev => ({ ...prev, banner: '' }));
+        setImagePreview(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -56,6 +108,7 @@ export default function AdminCategoriesPage() {
                 setShowForm(false);
                 setEditingId(null);
                 setFormData({ name: '', banner: '', sortOrder: 0, isActive: true });
+                setImagePreview(null);
             }
         } catch (error) {
             console.error('Error saving category:', error);
@@ -64,6 +117,7 @@ export default function AdminCategoriesPage() {
 
     const handleEdit = (cat: Category) => {
         setFormData({ name: cat.name, banner: cat.banner || '', sortOrder: cat.sortOrder, isActive: cat.isActive });
+        setImagePreview(cat.banner || null);
         setEditingId(cat.id);
         setShowForm(true);
     };
@@ -79,6 +133,13 @@ export default function AdminCategoriesPage() {
         }
     };
 
+    const handleAddNew = () => {
+        setShowForm(true);
+        setEditingId(null);
+        setFormData({ name: '', banner: '', sortOrder: 0, isActive: true });
+        setImagePreview(null);
+    };
+
     return (
         <div className="space-y-4 md:space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -87,7 +148,7 @@ export default function AdminCategoriesPage() {
                     <p className="text-sm text-gray-500">إضافة وتعديل أقسام المنتجات</p>
                 </div>
                 <button
-                    onClick={() => { setShowForm(true); setEditingId(null); setFormData({ name: '', banner: '', sortOrder: 0, isActive: true }); }}
+                    onClick={handleAddNew}
                     className="btn btn-primary w-full sm:w-auto"
                 >
                     <Plus className="w-5 h-5" />
@@ -113,14 +174,56 @@ export default function AdminCategoriesPage() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">رابط البانر</label>
-                                <input
-                                    type="url"
-                                    value={formData.banner}
-                                    onChange={(e) => setFormData({ ...formData, banner: e.target.value })}
-                                    className="input"
-                                    placeholder="https://example.com/image.jpg"
-                                />
+                                <label className="block text-sm font-medium text-gray-700 mb-1">صورة الغلاف</label>
+                                <div className="space-y-2">
+                                    {/* Image Preview */}
+                                    {(imagePreview || formData.banner) && (
+                                        <div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden">
+                                            <Image
+                                                src={imagePreview || formData.banner}
+                                                alt="معاينة الصورة"
+                                                fill
+                                                className="object-cover"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={handleRemoveImage}
+                                                className="absolute top-2 left-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {/* Upload Button */}
+                                    {!imagePreview && !formData.banner && (
+                                        <div
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-primary transition-colors"
+                                        >
+                                            {uploading ? (
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <div className="spinner"></div>
+                                                    <span className="text-sm text-gray-500">جاري الرفع...</span>
+                                                </div>
+                                            ) : (
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <Upload className="w-8 h-8 text-gray-400" />
+                                                    <span className="text-sm text-gray-500">اضغط لرفع صورة</span>
+                                                    <span className="text-xs text-gray-400">JPG, PNG, WebP - حتى 5MB</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/jpeg,image/png,image/webp,image/gif"
+                                        onChange={handleImageUpload}
+                                        className="hidden"
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -145,10 +248,12 @@ export default function AdminCategoriesPage() {
                             </div>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-2">
-                            <button type="submit" className="btn btn-primary w-full sm:w-auto">حفظ</button>
+                            <button type="submit" className="btn btn-primary w-full sm:w-auto" disabled={uploading}>
+                                {uploading ? 'جاري الرفع...' : 'حفظ'}
+                            </button>
                             <button
                                 type="button"
-                                onClick={() => { setShowForm(false); setEditingId(null); }}
+                                onClick={() => { setShowForm(false); setEditingId(null); setImagePreview(null); }}
                                 className="btn btn-outline w-full sm:w-auto"
                             >
                                 إلغاء
@@ -170,8 +275,12 @@ export default function AdminCategoriesPage() {
                     ) : (
                         categories.map((cat) => (
                             <div key={cat.id} className="flex items-center gap-3 p-4">
-                                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
-                                    <Tag className="w-6 h-6 text-primary" />
+                                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
+                                    {cat.banner ? (
+                                        <Image src={cat.banner} alt={cat.name} width={48} height={48} className="object-cover w-full h-full" />
+                                    ) : (
+                                        <Tag className="w-6 h-6 text-primary" />
+                                    )}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="font-semibold text-secondary-800 truncate">{cat.name}</p>
@@ -229,8 +338,12 @@ export default function AdminCategoriesPage() {
                                         </td>
                                         <td>
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                                                    <Tag className="w-5 h-5 text-primary" />
+                                                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center overflow-hidden">
+                                                    {cat.banner ? (
+                                                        <Image src={cat.banner} alt={cat.name} width={40} height={40} className="object-cover w-full h-full" />
+                                                    ) : (
+                                                        <Tag className="w-5 h-5 text-primary" />
+                                                    )}
                                                 </div>
                                                 <span className="font-medium text-secondary-800">{cat.name}</span>
                                             </div>

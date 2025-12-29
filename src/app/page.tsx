@@ -52,6 +52,7 @@ interface Category {
     id: string;
     name: string;
     image: string | null;
+    banner: string | null;
     _count: { products: number };
 }
 
@@ -197,9 +198,9 @@ function CategoryCard({ category }: { category: Category }) {
         >
             <div className="relative w-20 h-20 mx-auto mb-3 rounded-full bg-primary/5 p-2 group-hover:scale-110 transition-transform duration-300">
                 <div className="w-full h-full relative rounded-full overflow-hidden">
-                    {category.image ? (
+                    {(category.banner || category.image) ? (
                         <Image
-                            src={category.image}
+                            src={category.banner || category.image || ''}
                             alt={category.name}
                             fill
                             className="object-cover"
