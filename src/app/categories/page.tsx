@@ -40,7 +40,7 @@ export default function CategoriesPage() {
         <div className="min-h-screen bg-gray-50">
             <Header />
             <main className="container mx-auto px-4 py-8">
-                <h1 className="text-3xl font-bold text-secondary-800 mb-8">تسوق حسب القسم</h1>
+                <h1 className="text-3xl font-bold text-secondary-800 mb-8">تسوق حسب المتجر</h1>
 
                 {loading ? (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

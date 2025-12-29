@@ -144,7 +144,7 @@ export default function OperationsCategoriesPage() {
         <div className="space-y-4 md:space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-xl md:text-2xl font-bold text-secondary-800">إدارة الأقسام</h1>
+                    <h1 className="text-xl md:text-2xl font-bold text-secondary-800">إدارة المتاجر</h1>
                     <p className="text-sm text-gray-500">إضافة وتعديل أقسام المنتجات</p>
                 </div>
                 <button
@@ -159,12 +159,12 @@ export default function OperationsCategoriesPage() {
             {showForm && (
                 <div className="card p-4 md:p-6">
                     <h3 className="font-bold text-secondary-800 mb-4">
-                        {editingId ? 'تعديل القسم' : 'إضافة قسم جديد'}
+                        {editingId ? 'تعديل المتجر' : 'إضافة قسم جديد'}
                     </h3>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">اسم القسم</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">اسم المتجر</label>
                                 <input
                                     type="text"
                                     value={formData.name}
@@ -310,7 +310,7 @@ export default function OperationsCategoriesPage() {
                         <thead>
                             <tr>
                                 <th></th>
-                                <th>القسم</th>
+                                <th>المتجر</th>
                                 <th>عدد المنتجات</th>
                                 <th>الترتيب</th>
                                 <th>الحالة</th>

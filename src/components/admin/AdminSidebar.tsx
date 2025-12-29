@@ -36,7 +36,7 @@ const menuItems = [
     { href: '/admin', label: 'لوحة التحكم', icon: LayoutDashboard },
     { href: '/admin/users', label: 'المستخدمين', icon: Users },
     { href: '/admin/products', label: 'المنتجات', icon: Package },
-    { href: '/admin/categories', label: 'الأقسام', icon: Tag },
+    { href: '/admin/categories', label: 'المتاجر', icon: Tag },
     { href: '/admin/orders', label: 'الطلبات', icon: ShoppingCart },
     { href: '/admin/offers', label: 'العروض', icon: Gift },
     { href: '/admin/tickets', label: 'التذاكر', icon: Ticket },

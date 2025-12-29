@@ -25,7 +25,7 @@ export async function GET() {
     } catch (error) {
         console.error('Get categories error:', error);
         return NextResponse.json(
-            { message: 'حدث خطأ في جلب الأقسام' },
+            { message: 'حدث خطأ في جلب المتاجر' },
             { status: 500 }
         );
     }
@@ -78,13 +78,13 @@ export async function POST(request: NextRequest) {
         });
 
         return NextResponse.json({
-            message: 'تم إضافة القسم بنجاح',
+            message: 'تم إضافة المتجر بنجاح',
             category,
         }, { status: 201 });
     } catch (error) {
         console.error('Create category error:', error);
         return NextResponse.json(
-            { message: 'حدث خطأ في إضافة القسم' },
+            { message: 'حدث خطأ في إضافة المتجر' },
             { status: 500 }
         );
     }

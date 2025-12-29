@@ -337,7 +337,7 @@ export default function HomePage() {
                     {categories.length > 0 && (
                         <section className="py-8">
                             <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-2xl font-bold text-secondary-800">تصفح الأقسام</h2>
+                                <h2 className="text-2xl font-bold text-secondary-800">تصفح المتاجر</h2>
                                 <Link href="/categories" className="text-primary hover:underline flex items-center gap-1">
                                     عرض الكل
                                     <ArrowLeft className="w-4 h-4" />

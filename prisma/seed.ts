@@ -98,7 +98,7 @@ async function main() {
         });
         createdCategories[cat.name] = category.id;
     }
-    console.log('✅ تم إنشاء الأقسام:', categories.map(c => c.name).join(', '));
+    console.log('✅ تم إنشاء المتاجر:', categories.map(c => c.name).join(', '));
 
     // Create Sample Products
     const products = [

@@ -167,7 +167,7 @@ export default function AdminProductsPage() {
                             <tr>
                                 <th>المنتج</th>
                                 <th>SKU</th>
-                                <th>القسم</th>
+                                <th>المتجر</th>
                                 <th>السعر</th>
                                 <th>المخزون</th>
                                 <th>الحالة</th>

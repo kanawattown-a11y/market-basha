@@ -280,14 +280,14 @@ export default function NewProductPage() {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">القسم *</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">المتجر *</label>
                             <select
                                 value={formData.categoryId}
                                 onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
                                 className="input"
                                 required
                             >
-                                <option value="">اختر القسم</option>
+                                <option value="">اختر المتجر</option>
                                 {categories.map((cat) => (
                                     <option key={cat.id} value={cat.id}>{cat.name}</option>
                                 ))}

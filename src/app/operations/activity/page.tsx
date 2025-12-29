@@ -161,7 +161,7 @@ export default function OperationsActivityLogPage() {
                     <option value="User">المستخدمين</option>
                     <option value="Product">المنتجات</option>
                     <option value="Order">الطلبات</option>
-                    <option value="Category">الأقسام</option>
+                    <option value="Category">المتاجر</option>
                     <option value="Ticket">التذاكر</option>
                 </select>
                 <select

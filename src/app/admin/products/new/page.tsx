@@ -280,14 +280,14 @@ export default function NewProductPage() {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">القسم *</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">المتجر *</label>
                             <select
                                 value={formData.categoryId}
                                 onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
                                 className="input"
                                 required
                             >
-                                <option value="">اختر القسم</option>
+                                <option value="">اختر المتجر</option>
                                 {categories.map((cat) => (
                                     <option key={cat.id} value={cat.id}>{cat.name}</option>
                                 ))}
@@ -318,8 +318,8 @@ export default function NewProductPage() {
                                     <label
                                         key={area.id}
                                         className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-colors ${selectedAreaIds.includes(area.id)
-                                                ? 'bg-primary text-white border-primary'
-                                                : 'bg-gray-50 hover:bg-gray-100 border-gray-200'
+                                            ? 'bg-primary text-white border-primary'
+                                            : 'bg-gray-50 hover:bg-gray-100 border-gray-200'
                                             }`}
                                     >
                                         <input

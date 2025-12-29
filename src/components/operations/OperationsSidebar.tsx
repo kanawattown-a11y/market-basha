@@ -33,7 +33,7 @@ const menuItems = [
     { href: '/operations', label: 'لوحة العمليات', icon: LayoutDashboard },
     { href: '/operations/orders', label: 'الطلبات', icon: ShoppingCart },
     { href: '/operations/products', label: 'المنتجات', icon: Package },
-    { href: '/operations/categories', label: 'الأقسام', icon: Tag },
+    { href: '/operations/categories', label: 'المتاجر', icon: Tag },
     { href: '/operations/offers', label: 'العروض', icon: Gift },
     { href: '/operations/drivers', label: 'السائقون', icon: Truck },
     { href: '/operations/tickets', label: 'التذاكر', icon: Ticket },

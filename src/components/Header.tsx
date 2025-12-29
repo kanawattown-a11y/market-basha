@@ -100,7 +100,7 @@ export default function Header({ className, onCartClick }: HeaderProps) {
                         <nav className="hidden lg:flex items-center gap-6">
                             <Link href="/" className="text-sm font-bold text-gray-600 hover:text-primary transition-colors">الرئيسية</Link>
                             <Link href="/products" className="text-sm font-bold text-gray-600 hover:text-primary transition-colors">المنتجات</Link>
-                            <Link href="/categories" className="text-sm font-bold text-gray-600 hover:text-primary transition-colors">الأقسام</Link>
+                            <Link href="/categories" className="text-sm font-bold text-gray-600 hover:text-primary transition-colors">المتاجر</Link>
                             <Link href="/offers" className="text-sm font-bold text-gray-600 hover:text-primary transition-colors">العروض</Link>
                         </nav>
                     </div>
@@ -240,7 +240,7 @@ export default function Header({ className, onCartClick }: HeaderProps) {
                             المنتجات
                         </Link>
                         <Link href="/categories" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700 font-medium" onClick={() => setShowMobileMenu(false)}>
-                            الأقسام
+                            المتاجر
                         </Link>
                         <Link href="/offers" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700 font-medium" onClick={() => setShowMobileMenu(false)}>
                             العروض

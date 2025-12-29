@@ -170,7 +170,7 @@ function ProductsContent() {
                     {/* Sidebar Filters - Desktop */}
                     <aside className="hidden lg:block w-64 shrink-0">
                         <div className="card p-4 sticky top-24">
-                            <h3 className="font-bold text-secondary-800 mb-4">الأقسام</h3>
+                            <h3 className="font-bold text-secondary-800 mb-4">المتاجر</h3>
                             <div className="space-y-2">
                                 <button
                                     onClick={() => { setSelectedCategory(''); setPage(1); }}

@@ -21,7 +21,7 @@ export async function GET(
         });
 
         if (!category) {
-            return NextResponse.json({ message: 'القسم غير موجود' }, { status: 404 });
+            return NextResponse.json({ message: 'المتجر غير موجود' }, { status: 404 });
         }
 
         return NextResponse.json({ category });
@@ -74,7 +74,7 @@ export async function DELETE(
         const productsCount = await prisma.product.count({ where: { categoryId: id } });
         if (productsCount > 0) {
             return NextResponse.json(
-                { message: `لا يمكن حذف القسم، يحتوي على ${productsCount} منتج` },
+                { message: `لا يمكن حذف المتجر، يحتوي على ${productsCount} منتج` },
                 { status: 400 }
             );
         }
