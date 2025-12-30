@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
-    Search,
     Filter,
     ShoppingCart,
     Package,
@@ -200,34 +199,19 @@ function ProductsContent() {
 
                     {/* Main Content */}
                     <div className="flex-1">
-                        {/* Search & Filter Bar */}
-                        <div className="card p-4 mb-6">
-                            <div className="flex flex-col sm:flex-row gap-4">
-                                <form onSubmit={handleSearch} className="flex-1">
-                                    <div className="relative">
-                                        <input
-                                            type="text"
-                                            placeholder="ابحث عن منتج..."
-                                            value={search}
-                                            onChange={(e) => setSearch(e.target.value)}
-                                            className="input pr-10"
-                                        />
-                                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                    </div>
-                                </form>
-
-                                <button
-                                    onClick={() => setShowFilters(!showFilters)}
-                                    className="lg:hidden btn btn-outline"
-                                >
-                                    <SlidersHorizontal className="w-5 h-5" />
-                                    فلترة
-                                </button>
-                            </div>
+                        {/* Filter Bar - Mobile Only */}
+                        <div className="card p-4 mb-6 lg:hidden">
+                            <button
+                                onClick={() => setShowFilters(!showFilters)}
+                                className="btn btn-outline w-full"
+                            >
+                                <SlidersHorizontal className="w-5 h-5" />
+                                فلترة حسب المتجر
+                            </button>
 
                             {/* Mobile Filters */}
                             {showFilters && (
-                                <div className="lg:hidden mt-4 pt-4 border-t border-gray-100">
+                                <div className="mt-4 pt-4 border-t border-gray-100">
                                     <div className="flex flex-wrap gap-2">
                                         <button
                                             onClick={() => { setSelectedCategory(''); setShowFilters(false); }}

@@ -11,9 +11,20 @@ import {
     CheckCircle,
     Truck,
     MapPin,
-    Phone
+    Phone,
+    Star,
+    MessageSquare
 } from 'lucide-react';
 import { formatCurrency, formatDateTime, translateOrderStatus, getOrderStatusColor } from '@/lib/utils';
+import ReviewModal from '@/components/ReviewModal';
+
+interface Review {
+    id: string;
+    productRating: number;
+    driverRating: number | null;
+    comment: string | null;
+    createdAt: string;
+}
 
 interface OrderDetail {
     id: string;
@@ -26,6 +37,7 @@ interface OrderDetail {
     address: { fullAddress: string; area: string };
     driver: { name: string; phone: string } | null;
     items: { id: string; quantity: number; price: number; product: { name: string; image: string | null } }[];
+    review?: Review | null;
 }
 
 export default function AccountOrderDetailPage() {
@@ -33,25 +45,42 @@ export default function AccountOrderDetailPage() {
     const id = params.id as string;
     const [order, setOrder] = useState<OrderDetail | null>(null);
     const [loading, setLoading] = useState(true);
+    const [showReviewModal, setShowReviewModal] = useState(false);
+
+    const fetchOrder = async () => {
+        try {
+            const res = await fetch(`/api/orders/${id}`);
+            if (res.ok) {
+                const data = await res.json();
+                setOrder(data.order);
+            }
+        } catch (error) {
+            console.error('Error fetching order:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         if (!id) return;
-
-        const fetchOrder = async () => {
-            try {
-                const res = await fetch(`/api/orders/${id}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    setOrder(data.order);
-                }
-            } catch (error) {
-                console.error('Error fetching order:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchOrder();
     }, [id]);
+
+    const handleReviewSuccess = () => {
+        setShowReviewModal(false);
+        fetchOrder(); // Refresh to show review
+    };
+
+    const renderStars = (rating: number) => (
+        <div className="flex gap-0.5">
+            {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                    key={star}
+                    className={`w-4 h-4 ${star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
+                />
+            ))}
+        </div>
+    );
 
     if (loading) {
         return (
@@ -110,6 +139,52 @@ export default function AccountOrderDetailPage() {
                     </Link>
                 )}
             </div>
+
+            {/* Review Button - Show only for delivered orders without review */}
+            {order.status === 'DELIVERED' && !order.review && (
+                <button
+                    onClick={() => setShowReviewModal(true)}
+                    className="card p-4 w-full flex items-center justify-center gap-3 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-dashed border-yellow-300 hover:border-yellow-400 transition-colors group"
+                >
+                    <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Star className="w-6 h-6 text-yellow-500" />
+                    </div>
+                    <div className="text-right">
+                        <p className="font-bold text-secondary-800">قيّم طلبك</p>
+                        <p className="text-sm text-gray-500">شاركنا رأيك في المنتجات والخدمة</p>
+                    </div>
+                </button>
+            )}
+
+            {/* Existing Review */}
+            {order.review && (
+                <div className="card p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200">
+                    <h3 className="font-bold text-secondary-800 mb-3 flex items-center gap-2">
+                        <CheckCircle className="w-5 h-5 text-green-500" />
+                        تقييمك لهذا الطلب
+                    </h3>
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                            <span className="text-gray-600">تقييم المنتجات</span>
+                            {renderStars(order.review.productRating)}
+                        </div>
+                        {order.review.driverRating && (
+                            <div className="flex items-center justify-between">
+                                <span className="text-gray-600">تقييم السائق</span>
+                                {renderStars(order.review.driverRating)}
+                            </div>
+                        )}
+                        {order.review.comment && (
+                            <div className="bg-white/50 p-3 rounded-lg mt-2">
+                                <div className="flex items-start gap-2">
+                                    <MessageSquare className="w-4 h-4 text-gray-400 mt-0.5" />
+                                    <p className="text-gray-700 text-sm">{order.review.comment}</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* Driver */}
             {order.driver && order.status === 'OUT_FOR_DELIVERY' && (
@@ -177,6 +252,16 @@ export default function AccountOrderDetailPage() {
                 <p className="text-gray-700">{order.address.fullAddress}</p>
                 <p className="text-sm text-gray-500">{order.address.area}</p>
             </div>
+
+            {/* Review Modal */}
+            {showReviewModal && (
+                <ReviewModal
+                    orderId={order.id}
+                    hasDriver={!!order.driver}
+                    onClose={() => setShowReviewModal(false)}
+                    onSuccess={handleReviewSuccess}
+                />
+            )}
         </div>
     );
 }

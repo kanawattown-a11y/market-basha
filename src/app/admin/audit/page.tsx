@@ -43,7 +43,7 @@ export default async function AdminAuditPage() {
         const entities: Record<string, string> = {
             User: 'مستخدم',
             Product: 'منتج',
-            Category: 'قسم',
+            Category: 'متجر',
             Order: 'طلب',
             Ticket: 'تذكرة',
             Offer: 'عرض',

@@ -100,6 +100,7 @@ model User {
   auditLogs          AuditLog[]
   createdProducts    Product[]
   createdOffers      Offer[]
+  reviews            Review[]
   
   @@index([role])
   @@index([status])
@@ -296,11 +297,33 @@ model Order {
   
   items           OrderItem[]
   statusHistory   OrderStatusHistory[]
+  review          Review?
   
   @@index([customerId])
   @@index([driverId])
   @@index([status])
   @@index([orderNumber])
+  @@index([createdAt])
+}
+
+model Review {
+  id              String   @id @default(cuid())
+  
+  orderId         String   @unique  // تقييم واحد لكل طلب
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  userId          String   // المستخدم الذي أعطى التقييم
+  user            User     @relation(fields: [userId], references: [id])
+  
+  productRating   Int?     // 1-5 نجوم للمنتجات (اختياري)
+  driverRating    Int?     // 1-5 نجوم للسائق (اختياري)
+  comment         String?  // تعليق
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([userId])
+  @@index([productRating])
+  @@index([driverRating])
   @@index([createdAt])
 }
 

@@ -152,14 +152,14 @@ export default function AdminCategoriesPage() {
                     className="btn btn-primary w-full sm:w-auto"
                 >
                     <Plus className="w-5 h-5" />
-                    إضافة قسم
+                    إضافة متجر
                 </button>
             </div>
 
             {showForm && (
                 <div className="card p-4 md:p-6">
                     <h3 className="font-bold text-secondary-800 mb-4">
-                        {editingId ? 'تعديل المتجر' : 'إضافة قسم جديد'}
+                        {editingId ? 'تعديل المتجر' : 'إضافة متجر جديد'}
                     </h3>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

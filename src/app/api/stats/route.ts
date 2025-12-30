@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
             pendingOrders,
             monthlyRevenue,
             todayRevenue,
+            weeklyRevenue,
 
             // Driver stats
             totalDrivers,
@@ -52,6 +53,9 @@ export async function GET(request: NextRequest) {
 
             // Order status breakdown
             ordersByStatus,
+
+            // Top selling products
+            topProducts,
         ] = await Promise.all([
             // Total users
             prisma.user.count({ where: { role: 'USER', ...areaFilter } }),
@@ -91,6 +95,14 @@ export async function GET(request: NextRequest) {
                 },
                 _sum: { total: true },
             }),
+            // Weekly revenue
+            prisma.order.aggregate({
+                where: {
+                    createdAt: { gte: startOfWeek },
+                    status: 'DELIVERED',
+                },
+                _sum: { total: true },
+            }),
 
             // Driver stats
             prisma.user.count({ where: { role: 'DRIVER', status: 'APPROVED' } }),
@@ -114,6 +126,26 @@ export async function GET(request: NextRequest) {
             prisma.order.groupBy({
                 by: ['status'],
                 _count: { id: true },
+            }),
+
+            // Top selling products (by quantity sold)
+            prisma.orderItem.groupBy({
+                by: ['productId'],
+                where: {
+                    order: {
+                        status: 'DELIVERED',
+                    },
+                },
+                _sum: {
+                    quantity: true,
+                    total: true,
+                },
+                orderBy: {
+                    _sum: {
+                        total: 'desc',
+                    },
+                },
+                take: 10,
             }),
         ]);
 
@@ -155,6 +187,25 @@ export async function GET(request: NextRequest) {
             return acc;
         }, {} as Record<string, number>);
 
+        // Get product details for top selling products
+        const productIds = topProducts.map(p => p.productId);
+        const productDetails = await prisma.product.findMany({
+            where: { id: { in: productIds } },
+            select: { id: true, name: true, image: true, price: true },
+        });
+
+        const topSellingProducts = topProducts.map(p => {
+            const product = productDetails.find(pd => pd.id === p.productId);
+            return {
+                id: p.productId,
+                name: product?.name || 'منتج محذوف',
+                image: product?.image || null,
+                price: Number(product?.price || 0),
+                quantitySold: p._sum.quantity || 0,
+                totalRevenue: Number(p._sum.total || 0),
+            };
+        });
+
         return NextResponse.json({
             general: {
                 totalUsers,
@@ -166,6 +217,7 @@ export async function GET(request: NextRequest) {
                 weekOrders,
                 pendingOrders,
                 monthlyRevenue: Number(monthlyRevenue._sum.total || 0),
+                weeklyRevenue: Number(weeklyRevenue._sum.total || 0),
                 todayRevenue: Number(todayRevenue._sum.total || 0),
                 openTickets,
             },
@@ -176,6 +228,7 @@ export async function GET(request: NextRequest) {
             },
             ordersByStatus: statusBreakdown,
             areaStats,
+            topSellingProducts,
         });
     } catch (error) {
         console.error('Get stats error:', error);

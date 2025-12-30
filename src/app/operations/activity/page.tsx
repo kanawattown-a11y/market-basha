@@ -46,7 +46,7 @@ const entityLabels: Record<string, string> = {
     User: 'مستخدم',
     Product: 'منتج',
     Order: 'طلب',
-    Category: 'قسم',
+    Category: 'متجر',
     ServiceArea: 'منطقة',
     Ticket: 'تذكرة',
     Offer: 'عرض',

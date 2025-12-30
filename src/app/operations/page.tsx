@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
     Package,
     ClipboardList,
@@ -11,22 +12,49 @@ import {
     Clock,
     Activity,
     RefreshCw,
-    Ticket
+    Ticket,
+    DollarSign,
+    TrendingUp,
+    MapPin,
+    ShoppingBag
 } from 'lucide-react';
 import { formatCurrency, formatRelativeTime, translateOrderStatus, getOrderStatusColor } from '@/lib/utils';
+
+interface TopProduct {
+    id: string;
+    name: string;
+    image: string | null;
+    price: number;
+    quantitySold: number;
+    totalRevenue: number;
+}
+
+interface AreaStat {
+    id: string;
+    name: string;
+    users: number;
+    orders: number;
+    revenue: number;
+}
 
 interface Stats {
     general: {
         pendingOrders: number;
         todayOrders: number;
+        weekOrders: number;
         lowStockProducts: number;
         openTickets: number;
+        todayRevenue: number;
+        weeklyRevenue: number;
+        monthlyRevenue: number;
     };
     drivers: {
         total: number;
         available: number;
         busy: number;
     };
+    areaStats: AreaStat[];
+    topSellingProducts: TopProduct[];
 }
 
 interface Order {
@@ -93,11 +121,48 @@ export default function OperationsDashboard() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-secondary-800">لوحة العمليات</h1>
-                    <p className="text-gray-500">نظرة عامة على العمليات</p>
+                    <p className="text-gray-500">نظرة عامة على العمليات والإيرادات</p>
                 </div>
                 <button onClick={fetchData} className="btn btn-outline btn-sm" disabled={loading}>
                     <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                 </button>
+            </div>
+
+            {/* Revenue Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="card p-4 bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center text-white">
+                            <DollarSign className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-600">إيرادات اليوم</p>
+                            <p className="text-2xl font-bold text-green-700">{formatCurrency(stats.general.todayRevenue)}</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="card p-4 bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center text-white">
+                            <TrendingUp className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-600">إيرادات الأسبوع</p>
+                            <p className="text-2xl font-bold text-blue-700">{formatCurrency(stats.general.weeklyRevenue)}</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="card p-4 bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center text-white">
+                            <DollarSign className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-600">إيرادات الشهر</p>
+                            <p className="text-2xl font-bold text-purple-700">{formatCurrency(stats.general.monthlyRevenue)}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Order Stats */}
@@ -146,6 +211,76 @@ export default function OperationsDashboard() {
                             <p className="text-sm text-gray-500">مشغولين</p>
                             <p className="text-xl font-bold text-orange-600">{stats.drivers.busy}</p>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Top Selling Products */}
+                <div className="card">
+                    <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <ShoppingBag className="w-5 h-5 text-primary" />
+                            <h3 className="font-bold text-secondary-800">أكثر المنتجات مبيعاً</h3>
+                        </div>
+                    </div>
+                    <div className="divide-y divide-gray-100 max-h-80 overflow-y-auto">
+                        {stats.topSellingProducts?.length === 0 ? (
+                            <div className="p-8 text-center text-gray-500">
+                                لا توجد بيانات
+                            </div>
+                        ) : (
+                            stats.topSellingProducts?.map((product, index) => (
+                                <div key={product.id} className="p-3 flex items-center gap-3">
+                                    <span className="w-6 h-6 bg-primary/10 text-primary rounded-full flex items-center justify-center text-sm font-bold">
+                                        {index + 1}
+                                    </span>
+                                    <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden shrink-0">
+                                        {product.image ? (
+                                            <Image src={product.image} alt={product.name} width={40} height={40} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center">
+                                                <Package className="w-5 h-5 text-gray-400" />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-medium text-secondary-800 truncate">{product.name}</p>
+                                        <p className="text-xs text-gray-500">{product.quantitySold} قطعة مباعة</p>
+                                    </div>
+                                    <div className="text-left">
+                                        <p className="font-bold text-primary">{formatCurrency(product.totalRevenue)}</p>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+
+                {/* Area Stats */}
+                <div className="card">
+                    <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <MapPin className="w-5 h-5 text-primary" />
+                            <h3 className="font-bold text-secondary-800">إحصائيات المناطق</h3>
+                        </div>
+                    </div>
+                    <div className="divide-y divide-gray-100 max-h-80 overflow-y-auto">
+                        {stats.areaStats?.length === 0 ? (
+                            <div className="p-8 text-center text-gray-500">
+                                لا توجد مناطق
+                            </div>
+                        ) : (
+                            stats.areaStats?.map((area) => (
+                                <div key={area.id} className="p-3 flex items-center justify-between">
+                                    <div>
+                                        <p className="font-medium text-secondary-800">{area.name}</p>
+                                        <p className="text-xs text-gray-500">{area.users} عميل • {area.orders} طلب</p>
+                                    </div>
+                                    <p className="font-bold text-primary">{formatCurrency(area.revenue)}</p>
+                                </div>
+                            ))
+                        )}
                     </div>
                 </div>
             </div>

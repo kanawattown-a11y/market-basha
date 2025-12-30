@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
     Users,
     Package,
@@ -17,9 +18,19 @@ import {
     MapPin,
     RefreshCw,
     Ticket,
-    Activity
+    Activity,
+    ShoppingBag
 } from 'lucide-react';
 import { formatCurrency, formatNumber, translateOrderStatus, getOrderStatusColor } from '@/lib/utils';
+
+interface TopProduct {
+    id: string;
+    name: string;
+    image: string | null;
+    price: number;
+    quantitySold: number;
+    totalRevenue: number;
+}
 
 interface Stats {
     general: {
@@ -32,6 +43,7 @@ interface Stats {
         weekOrders: number;
         pendingOrders: number;
         monthlyRevenue: number;
+        weeklyRevenue: number;
         todayRevenue: number;
         openTickets: number;
     };
@@ -48,6 +60,7 @@ interface Stats {
         orders: number;
         revenue: number;
     }[];
+    topSellingProducts: TopProduct[];
 }
 
 interface RecentOrder {
@@ -136,7 +149,7 @@ export default function AdminDashboard() {
         { title: 'إجمالي الطلبات', value: formatNumber(stats.general.totalOrders), icon: ShoppingCart, color: 'bg-green-500', link: '/admin/orders' },
         { title: 'طلبات اليوم', value: formatNumber(stats.general.todayOrders), icon: Clock, color: 'bg-indigo-500', link: '/admin/orders' },
         { title: 'طلبات معلقة', value: formatNumber(stats.general.pendingOrders), icon: Truck, color: 'bg-orange-500', link: '/admin/orders?status=PENDING', alert: stats.general.pendingOrders > 0 },
-        { title: 'إيرادات الشهر', value: formatCurrency(stats.general.monthlyRevenue), icon: DollarSign, color: 'bg-emerald-500', link: '/admin/orders' },
+        { title: 'إيرادات اليوم', value: formatCurrency(stats.general.todayRevenue), icon: DollarSign, color: 'bg-emerald-500', link: '/admin/orders' },
     ];
 
     return (
@@ -186,6 +199,43 @@ export default function AdminDashboard() {
                         </div>
                     </Link>
                 ))}
+            </div>
+
+            {/* Revenue Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="card p-4 bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center text-white">
+                            <DollarSign className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-600">إيرادات اليوم</p>
+                            <p className="text-2xl font-bold text-green-700">{formatCurrency(stats.general.todayRevenue)}</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="card p-4 bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center text-white">
+                            <TrendingUp className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-600">إيرادات الأسبوع</p>
+                            <p className="text-2xl font-bold text-blue-700">{formatCurrency(stats.general.weeklyRevenue)}</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="card p-4 bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center text-white">
+                            <DollarSign className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-600">إيرادات الشهر</p>
+                            <p className="text-2xl font-bold text-purple-700">{formatCurrency(stats.general.monthlyRevenue)}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Driver Stats & Tickets Row */}
@@ -266,6 +316,44 @@ export default function AdminDashboard() {
                                 ))}
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            )}
+
+            {/* Top Selling Products */}
+            {stats.topSellingProducts?.length > 0 && (
+                <div className="card">
+                    <div className="card-header flex items-center justify-between">
+                        <h2 className="font-bold text-secondary-800 flex items-center gap-2">
+                            <ShoppingBag className="w-5 h-5 text-primary" />
+                            أكثر المنتجات مبيعاً
+                        </h2>
+                    </div>
+                    <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+                        {stats.topSellingProducts.map((product, index) => (
+                            <div key={product.id} className="p-3 flex items-center gap-3">
+                                <span className="w-6 h-6 bg-primary/10 text-primary rounded-full flex items-center justify-center text-sm font-bold">
+                                    {index + 1}
+                                </span>
+                                <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden shrink-0">
+                                    {product.image ? (
+                                        <Image src={product.image} alt={product.name} width={48} height={48} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <Package className="w-6 h-6 text-gray-400" />
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-medium text-secondary-800 truncate">{product.name}</p>
+                                    <p className="text-sm text-gray-500">{product.quantitySold} قطعة مباعة</p>
+                                </div>
+                                <div className="text-left">
+                                    <p className="font-bold text-primary">{formatCurrency(product.totalRevenue)}</p>
+                                    <p className="text-xs text-gray-400">إجمالي المبيعات</p>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             )}
