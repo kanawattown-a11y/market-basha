@@ -3,15 +3,43 @@
 
 const fs = require('fs');
 const path = require('path');
-require('dotenv').config();
+
+// Read .env file manually (no external dependencies)
+function loadEnv() {
+    const envPath = path.join(__dirname, '..', '.env');
+    const env = {};
+
+    if (fs.existsSync(envPath)) {
+        const content = fs.readFileSync(envPath, 'utf8');
+        content.split('\n').forEach(line => {
+            const trimmed = line.trim();
+            if (trimmed && !trimmed.startsWith('#')) {
+                const [key, ...valueParts] = trimmed.split('=');
+                if (key && valueParts.length > 0) {
+                    let value = valueParts.join('=');
+                    // Remove quotes
+                    if ((value.startsWith('"') && value.endsWith('"')) ||
+                        (value.startsWith("'") && value.endsWith("'"))) {
+                        value = value.slice(1, -1);
+                    }
+                    env[key.trim()] = value;
+                }
+            }
+        });
+    }
+
+    return env;
+}
+
+const env = loadEnv();
 
 const firebaseConfig = {
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '',
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || '',
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || ''
+    apiKey: env.NEXT_PUBLIC_FIREBASE_API_KEY || '',
+    authDomain: env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
+    projectId: env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || '',
+    storageBucket: env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
+    messagingSenderId: env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
+    appId: env.NEXT_PUBLIC_FIREBASE_APP_ID || ''
 };
 
 const swContent = `// Firebase Cloud Messaging Service Worker
@@ -88,4 +116,4 @@ const outputPath = path.join(__dirname, '..', 'public', 'firebase-messaging-sw.j
 fs.writeFileSync(outputPath, swContent, 'utf8');
 
 console.log('✅ firebase-messaging-sw.js updated successfully!');
-console.log('Firebase Config:', firebaseConfig.projectId ? 'Configured' : '⚠️ Missing values');
+console.log('Firebase Config:', firebaseConfig.projectId ? `✅ ${firebaseConfig.projectId}` : '⚠️ Missing values');
