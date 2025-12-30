@@ -62,9 +62,19 @@ export async function PUT(
             });
         }
 
+        // Only allow specific fields to be updated
+        const updateData: Record<string, unknown> = {};
+        if (body.title !== undefined) updateData.title = body.title;
+        if (body.fullAddress !== undefined) updateData.fullAddress = body.fullAddress;
+        if (body.area !== undefined) updateData.area = body.area;
+        if (body.building !== undefined) updateData.building = body.building || null;
+        if (body.floor !== undefined) updateData.floor = body.floor || null;
+        if (body.notes !== undefined) updateData.notes = body.notes || null;
+        if (body.isDefault !== undefined) updateData.isDefault = body.isDefault;
+
         const address = await prisma.address.update({
             where: { id },
-            data: body,
+            data: updateData,
         });
 
         return NextResponse.json({ message: 'تم التحديث', address });

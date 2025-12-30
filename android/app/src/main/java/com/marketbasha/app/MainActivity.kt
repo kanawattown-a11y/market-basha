@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity() {
         webView.addJavascriptInterface(WebAppInterface(), "AndroidBridge")
 
         webView.webChromeClient = WebChromeClient()
-        webView.webViewClient = MyWebViewClient(swipeRefreshLayout)
+        webView.webViewClient = MyWebViewClient(swipeRefreshLayout, this)
 
         // Load initial URL
         if (intent?.data == null) {

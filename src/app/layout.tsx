@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { CartProvider } from '@/contexts/CartContext';
+import NotificationAutoRegister from '@/components/NotificationAutoRegister';
 
 export const viewport: Viewport = {
     width: 'device-width',
@@ -33,6 +34,7 @@ export default function RootLayout({
         <html lang="ar" dir="rtl" suppressHydrationWarning>
             <body className="font-cairo antialiased" suppressHydrationWarning>
                 <CartProvider>
+                    <NotificationAutoRegister />
                     {children}
                 </CartProvider>
             </body>
