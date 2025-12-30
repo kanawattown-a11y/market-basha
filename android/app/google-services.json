@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "491279932694",
+    "project_id": "market-basha",
+    "storage_bucket": "market-basha.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:491279932694:android:24dbdd5ccec37ea68c0437",
+        "android_client_info": {
+          "package_name": "com.marketbasha.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQmbXCru1Jx2YsCCrPKSBzciwZ4Qzo_Uw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

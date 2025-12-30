@@ -21,8 +21,27 @@ const firebaseConfig = {
 
 let messaging: Messaging | null = null;
 
+// Check if running inside Android WebView
+function isAndroidApp(): boolean {
+    if (typeof window === 'undefined') return false;
+    return window.navigator.userAgent.includes('MarketBashaApp');
+}
+
+// Android Bridge interface
+declare global {
+    interface Window {
+        AndroidBridge?: {
+            getFCMToken: () => string;
+            requestNotificationPermission: () => void;
+            isNotificationPermissionGranted: () => boolean;
+        };
+        receiveNativeFCMToken?: (token: string) => void;
+    }
+}
+
 function getFirebaseMessaging() {
     if (typeof window === 'undefined') return null;
+    if (isAndroidApp()) return null; // Don't use web FCM in Android app
 
     if (!firebaseConfig.apiKey) {
         console.warn('Firebase not configured');
@@ -45,17 +64,42 @@ export default function PushNotificationButton({ className = '' }: PushNotificat
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [isSupported, setIsSupported] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [isAndroid, setIsAndroid] = useState(false);
 
     useEffect(() => {
-        // Check if notifications are supported
-        if ('Notification' in window && 'serviceWorker' in navigator) {
+        const android = isAndroidApp();
+        setIsAndroid(android);
+
+        if (android) {
+            // Android native app
             setIsSupported(true);
-            checkSubscription();
+            checkAndroidSubscription();
+
+            // Listen for token from native app
+            window.receiveNativeFCMToken = async (token: string) => {
+                console.log('Received native FCM token:', token);
+                await sendTokenToServer(token);
+                setIsSubscribed(true);
+            };
+        } else if ('Notification' in window && 'serviceWorker' in navigator) {
+            // Web browser
+            setIsSupported(true);
+            checkWebSubscription();
         }
+
+        return () => {
+            window.receiveNativeFCMToken = undefined;
+        };
     }, []);
 
-    const checkSubscription = async () => {
-        // Check if already subscribed
+    const checkAndroidSubscription = () => {
+        if (window.AndroidBridge) {
+            const token = window.AndroidBridge.getFCMToken();
+            setIsSubscribed(!!token);
+        }
+    };
+
+    const checkWebSubscription = async () => {
         if (Notification.permission === 'granted') {
             const fcmMessaging = getFirebaseMessaging();
             if (fcmMessaging) {
@@ -71,56 +115,69 @@ export default function PushNotificationButton({ className = '' }: PushNotificat
         }
     };
 
-    const subscribe = async () => {
-        setLoading(true);
+    const sendTokenToServer = async (token: string) => {
         try {
-            // Request permission
-            const permission = await Notification.requestPermission();
-            if (permission !== 'granted') {
-                alert('يرجى السماح بالإشعارات من إعدادات المتصفح');
-                return;
-            }
-
-            // Register service worker for FCM
-            await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-
-            // Get FCM token
-            const fcmMessaging = getFirebaseMessaging();
-            if (!fcmMessaging) {
-                alert('Firebase غير مُعد');
-                return;
-            }
-
-            const token = await getToken(fcmMessaging, {
-                vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
-            });
-
-            if (!token) {
-                alert('فشل الحصول على token');
-                return;
-            }
-
-            // Send token to server
             const res = await fetch('/api/push/subscribe', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token }),
             });
+            return res.ok;
+        } catch (error) {
+            console.error('Error sending token to server:', error);
+            return false;
+        }
+    };
 
-            if (res.ok) {
-                setIsSubscribed(true);
+    const subscribe = async () => {
+        setLoading(true);
+        try {
+            if (isAndroid) {
+                // Android: Request permission and get token via bridge
+                if (window.AndroidBridge) {
+                    window.AndroidBridge.requestNotificationPermission();
+                    // Token will be sent via receiveNativeFCMToken callback
+                }
+            } else {
+                // Web: Use Firebase JS SDK
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    alert('يرجى السماح بالإشعارات من إعدادات المتصفح');
+                    return;
+                }
 
-                // Listen for foreground messages
-                onMessage(fcmMessaging, (payload) => {
-                    console.log('Foreground message:', payload);
-                    // Show notification manually for foreground
-                    if (payload.notification) {
-                        new Notification(payload.notification.title || 'إشعار جديد', {
-                            body: payload.notification.body,
-                            icon: '/icons/icon-192x192.png',
-                        });
-                    }
+                await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+
+                const fcmMessaging = getFirebaseMessaging();
+                if (!fcmMessaging) {
+                    alert('Firebase غير مُعد');
+                    return;
+                }
+
+                const token = await getToken(fcmMessaging, {
+                    vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
                 });
+
+                if (!token) {
+                    alert('فشل الحصول على token');
+                    return;
+                }
+
+                const success = await sendTokenToServer(token);
+                if (success) {
+                    setIsSubscribed(true);
+
+                    // Listen for foreground messages
+                    onMessage(fcmMessaging, (payload) => {
+                        console.log('Foreground message:', payload);
+                        if (payload.notification) {
+                            new Notification(payload.notification.title || 'إشعار جديد', {
+                                body: payload.notification.body,
+                                icon: '/icons/icon-192x192.png',
+                            });
+                        }
+                    });
+                }
             }
         } catch (error) {
             console.error('Error subscribing:', error);
@@ -133,16 +190,27 @@ export default function PushNotificationButton({ className = '' }: PushNotificat
     const unsubscribe = async () => {
         setLoading(true);
         try {
-            const fcmMessaging = getFirebaseMessaging();
-            if (fcmMessaging) {
-                const token = await getToken(fcmMessaging, {
-                    vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
-                });
-
-                if (token) {
-                    await fetch(`/api/push/subscribe?token=${encodeURIComponent(token)}`, {
-                        method: 'DELETE',
+            if (isAndroid) {
+                if (window.AndroidBridge) {
+                    const token = window.AndroidBridge.getFCMToken();
+                    if (token) {
+                        await fetch(`/api/push/subscribe?token=${encodeURIComponent(token)}`, {
+                            method: 'DELETE',
+                        });
+                    }
+                }
+            } else {
+                const fcmMessaging = getFirebaseMessaging();
+                if (fcmMessaging) {
+                    const token = await getToken(fcmMessaging, {
+                        vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
                     });
+
+                    if (token) {
+                        await fetch(`/api/push/subscribe?token=${encodeURIComponent(token)}`, {
+                            method: 'DELETE',
+                        });
+                    }
                 }
             }
             setIsSubscribed(false);
@@ -162,8 +230,8 @@ export default function PushNotificationButton({ className = '' }: PushNotificat
             onClick={isSubscribed ? unsubscribe : subscribe}
             disabled={loading}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${isSubscribed
-                    ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 } ${className}`}
             title={isSubscribed ? 'إلغاء الإشعارات' : 'تفعيل الإشعارات'}
         >

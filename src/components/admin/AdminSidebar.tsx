@@ -17,7 +17,8 @@ import {
     LogOut,
     ChevronRight,
     X,
-    Gift
+    Gift,
+    Star
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
@@ -38,6 +39,7 @@ const menuItems = [
     { href: '/admin/products', label: 'المنتجات', icon: Package },
     { href: '/admin/categories', label: 'المتاجر', icon: Tag },
     { href: '/admin/orders', label: 'الطلبات', icon: ShoppingCart },
+    { href: '/admin/reviews', label: 'التقييمات', icon: Star },
     { href: '/admin/offers', label: 'العروض', icon: Gift },
     { href: '/admin/tickets', label: 'التذاكر', icon: Ticket },
     { href: '/admin/areas', label: 'مناطق التخديم', icon: MapPin },
