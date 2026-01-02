@@ -37,7 +37,7 @@ class MyWebViewClient(
         // Stop refresh animation when page loads
         swipeRefreshLayout.isRefreshing = false
         
-        // Save auth cookies for the Firebase service to use
+        // Save auth cookies for persistence
         saveAuthCookies()
         
         // Inject JavaScript to auto-subscribe to notifications when user is logged in
@@ -76,11 +76,28 @@ class MyWebViewClient(
             val cookieManager = CookieManager.getInstance()
             val cookies = cookieManager.getCookie("https://marketbasha.com")
             
-            if (cookies != null && cookies.contains("auth-token")) {
-                // Save cookies for the Firebase service
-                val prefs = context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
-                prefs.edit().putString("auth_cookie", cookies).apply()
-                println("Auth cookies saved successfully")
+            if (cookies != null) {
+                // Parse cookies to find auth-token
+                val cookiesList = cookies.split(";").map { it.trim() }
+                var authToken: String? = null
+                
+                for (cookie in cookiesList) {
+                    if (cookie.startsWith("auth-token=")) {
+                        authToken = cookie.substringAfter("auth-token=")
+                        break
+                    }
+                }
+                
+                // Save auth token to SharedPreferences for long-term persistence
+                if (authToken != null && authToken.isNotEmpty()) {
+                    val prefs = context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+                    prefs.edit().apply {
+                        putString("auth_token", authToken)
+                        putLong("token_saved_time", System.currentTimeMillis())
+                        apply()
+                    }
+                    println("Auth token saved to SharedPreferences: ${authToken.take(20)}...")
+                }
             }
         } catch (e: Exception) {
             println("Failed to save auth cookies: ${e.message}")

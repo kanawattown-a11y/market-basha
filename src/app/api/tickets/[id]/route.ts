@@ -37,7 +37,28 @@ export async function GET(
             return NextResponse.json({ message: 'غير مصرح' }, { status: 403 });
         }
 
-        return NextResponse.json({ ticket });
+        // Get all users to check if message senders are staff
+        const messageUserIds = ticket.messages.map(m => m.userId);
+        const users = await prisma.user.findMany({
+            where: { id: { in: messageUserIds } },
+            select: { id: true, role: true }
+        });
+
+        const userRoleMap = new Map(users.map(u => [u.id, u.role]));
+
+        // Map message field to content and add isStaff flag for frontend compatibility
+        const ticketWithMappedMessages = {
+            ...ticket,
+            messages: ticket.messages.map(msg => ({
+                id: msg.id,
+                content: msg.message, // Map to content
+                isStaff: ['ADMIN', 'OPERATIONS'].includes(userRoleMap.get(msg.userId) || ''),
+                createdAt: msg.createdAt,
+                user: msg.user
+            }))
+        };
+
+        return NextResponse.json({ ticket: ticketWithMappedMessages });
     } catch (error) {
         console.error('Get ticket error:', error);
         return NextResponse.json({ message: 'حدث خطأ' }, { status: 500 });
