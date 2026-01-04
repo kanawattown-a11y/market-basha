@@ -11,6 +11,7 @@ interface Category {
     name: string;
     description: string | null;
     image: string | null;
+    banner: string | null;
     _count: { products: number };
 }
 
@@ -57,9 +58,9 @@ export default function CategoriesPage() {
                                 className="card group hover:shadow-lg transition-all overflow-hidden"
                             >
                                 <div className="aspect-[4/3] bg-gray-100 relative">
-                                    {category.image ? (
+                                    {(category as any).banner || category.image ? (
                                         <Image
-                                            src={category.image}
+                                            src={(category as any).banner || category.image}
                                             alt={category.name}
                                             fill
                                             className="object-cover group-hover:scale-105 transition-transform duration-500"
