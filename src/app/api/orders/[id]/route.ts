@@ -156,6 +156,20 @@ export async function PUT(
                     { status: 403 }
                 );
             }
+            // Drivers can ONLY mark orders as DELIVERED (cannot cancel)
+            if (status && status !== 'DELIVERED') {
+                return NextResponse.json(
+                    { message: 'يمكنك فقط تأكيد توصيل الطلب' },
+                    { status: 403 }
+                );
+            }
+            // Driver can only deliver from OUT_FOR_DELIVERY status
+            if (status === 'DELIVERED' && oldOrder.status !== 'OUT_FOR_DELIVERY') {
+                return NextResponse.json(
+                    { message: 'الطلب ليس في حالة التوصيل بعد' },
+                    { status: 400 }
+                );
+            }
         }
 
         const updateData: Record<string, unknown> = {};
