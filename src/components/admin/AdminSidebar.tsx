@@ -43,6 +43,8 @@ const menuItems = [
     { href: '/admin/offers', label: 'العروض', icon: Gift },
     { href: '/admin/tickets', label: 'التذاكر', icon: Ticket },
     { href: '/admin/areas', label: 'مناطق التخديم', icon: MapPin },
+    { href: '/admin/financials', label: 'التقارير المالية', icon: BarChart3 },
+    { href: '/admin/stores/financials', label: 'أرباح المتاجر', icon: BarChart3 },
     { href: '/admin/audit', label: 'سجل العمليات', icon: BarChart3 },
     { href: '/admin/notifications', label: 'الإشعارات', icon: Bell },
     { href: '/admin/settings', label: 'الإعدادات', icon: Settings },

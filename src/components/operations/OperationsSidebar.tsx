@@ -15,7 +15,9 @@ import {
     Tag,
     Gift,
     Truck,
-    Star
+    Star,
+    BarChart3,
+    Bell
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -39,6 +41,9 @@ const menuItems = [
     { href: '/operations/drivers', label: 'السائقون', icon: Truck },
     { href: '/operations/reviews', label: 'التقييمات', icon: Star },
     { href: '/operations/tickets', label: 'التذاكر', icon: Ticket },
+    { href: '/operations/financials', label: 'التقارير المالية', icon: BarChart3 },
+    { href: '/operations/stores/financials', label: 'أرباح المتاجر', icon: BarChart3 },
+    { href: '/operations/notifications', label: 'الإشعارات', icon: Bell },
 ];
 
 export default function OperationsSidebar({ user }: OperationsSidebarProps) {

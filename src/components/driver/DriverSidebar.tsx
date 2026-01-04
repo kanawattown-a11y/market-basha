@@ -9,7 +9,8 @@ import {
     ChevronRight,
     X,
     Menu,
-    CheckCircle
+    CheckCircle,
+    Bell
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -28,6 +29,7 @@ const menuItems = [
     { href: '/driver', label: 'الطلبات الجاهزة', icon: Package },
     { href: '/driver/active', label: 'التوصيلات النشطة', icon: Truck },
     { href: '/driver/completed', label: 'الطلبات المكتملة', icon: CheckCircle },
+    { href: '/driver/notifications', label: 'الإشعارات', icon: Bell },
 ];
 
 export default function DriverSidebar({ user }: DriverSidebarProps) {
