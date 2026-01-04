@@ -249,7 +249,10 @@ export async function DELETE(
             );
         }
 
-        await prisma.user.delete({ where: { id } });
+        await prisma.user.update({
+            where: { id },
+            data: { deletedAt: new Date() },
+        });
 
         // Audit log
         await createAuditLog({
@@ -261,7 +264,7 @@ export async function DELETE(
         });
 
         return NextResponse.json({
-            message: 'تم حذف المستخدم بنجاح',
+            message: 'تم نقل المستخدم إلى سلة المهملات',
         });
     } catch (error) {
         console.error('Delete user error:', error);

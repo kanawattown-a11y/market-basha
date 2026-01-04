@@ -18,7 +18,8 @@ import {
     ChevronRight,
     X,
     Gift,
-    Star
+    Star,
+    Trash2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
@@ -46,6 +47,7 @@ const menuItems = [
     { href: '/admin/financials', label: 'التقارير المالية', icon: BarChart3 },
     { href: '/admin/stores/financials', label: 'أرباح المتاجر', icon: BarChart3 },
     { href: '/admin/audit', label: 'سجل العمليات', icon: BarChart3 },
+    { href: '/admin/trash', label: 'سلة المهملات', icon: Trash2 },
     { href: '/admin/notifications', label: 'الإشعارات', icon: Bell },
     { href: '/admin/settings', label: 'الإعدادات', icon: Settings },
 ];

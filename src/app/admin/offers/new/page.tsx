@@ -12,7 +12,7 @@ export default function NewOfferPage() {
     const [formData, setFormData] = useState({
         title: '',
         description: '',
-        discountType: 'PERCENTAGE',
+        discountType: 'percentage',
         discountValue: 10,
         minOrderAmount: 0,
         startDate: new Date().toISOString().split('T')[0],
@@ -94,8 +94,8 @@ export default function NewOfferPage() {
                                 onChange={(e) => setFormData({ ...formData, discountType: e.target.value })}
                                 className="input"
                             >
-                                <option value="PERCENTAGE">نسبة مئوية (%)</option>
-                                <option value="FIXED">مبلغ ثابت (ل.س)</option>
+                                <option value="percentage">نسبة مئوية (%)</option>
+                                <option value="fixed">مبلغ ثابت (ل.س)</option>
                             </select>
                         </div>
 

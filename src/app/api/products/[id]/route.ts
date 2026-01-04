@@ -165,17 +165,11 @@ export async function DELETE(
             );
         }
 
-        // Delete images from S3
-        if (product.image) {
-            await deleteFromS3(product.image);
-        }
-        if (product.images.length > 0) {
-            for (const img of product.images) {
-                await deleteFromS3(img);
-            }
-        }
-
-        await prisma.product.delete({ where: { id } });
+        // Soft delete (don't delete images, they may be needed for restore)
+        await prisma.product.update({
+            where: { id },
+            data: { deletedAt: new Date() },
+        });
 
         // Audit log
         await createAuditLog({
@@ -187,7 +181,7 @@ export async function DELETE(
         });
 
         return NextResponse.json({
-            message: 'تم حذف المنتج بنجاح',
+            message: 'تم نقل المنتج إلى سلة المهملات',
         });
     } catch (error) {
         console.error('Delete product error:', error);

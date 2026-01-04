@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Store, TrendingUp, Package, ShoppingCart, DollarSign } from 'lucide-react';
+import { Store, Package, ShoppingCart } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import Image from 'next/image';
 
@@ -11,10 +11,8 @@ interface StoreFinancials {
     categoryImage: string | null;
     totalRevenue: number;
     totalCost: number;
-    totalProfit: number;
     productsSold: number;
     ordersCount: number;
-    profitMargin: number;
 }
 
 interface FinancialsData {
@@ -23,10 +21,8 @@ interface FinancialsData {
     totals: {
         totalRevenue: number;
         totalCost: number;
-        totalProfit: number;
         productsSold: number;
         ordersCount: number;
-        profitMargin: number;
     };
 }
 
@@ -66,8 +62,8 @@ export default function OperationsStoreFinancialsPage() {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-secondary-800">التقارير المالية للمتاجر</h1>
-                    <p className="text-gray-500">تحليل أرباح كل متجر على حدة</p>
+                    <h1 className="text-2xl font-bold text-secondary-800">تقارير المتاجر المالية</h1>
+                    <p className="text-gray-500">تحليل المبيعات والتكاليف لكل متجر</p>
                 </div>
 
                 <select
@@ -83,7 +79,8 @@ export default function OperationsStoreFinancialsPage() {
             </div>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
                 <div className="card p-4">
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-sm text-gray-500">إجمالي المبيعات</span>
@@ -104,19 +101,6 @@ export default function OperationsStoreFinancialsPage() {
                     </div>
                     <p className="text-2xl font-bold text-orange-700">
                         {formatCurrency(data.totals.totalCost)}
-                    </p>
-                </div>
-
-                <div className="card p-4">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-gray-500">صافي الربح</span>
-                        <TrendingUp className="w-5 h-5 text-primary" />
-                    </div>
-                    <p className="text-2xl font-bold text-primary">
-                        {formatCurrency(data.totals.totalProfit)}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                        هامش {data.totals.profitMargin.toFixed(1)}%
                     </p>
                 </div>
 
@@ -144,8 +128,6 @@ export default function OperationsStoreFinancialsPage() {
                                 <th>المتجر</th>
                                 <th>المبيعات</th>
                                 <th>رأس المال</th>
-                                <th>الربح</th>
-                                <th>هامش الربح</th>
                                 <th>المنتجات</th>
                                 <th>الطلبات</th>
                             </tr>
@@ -178,19 +160,6 @@ export default function OperationsStoreFinancialsPage() {
                                     <td className="text-orange-700">
                                         {formatCurrency(store.totalCost)}
                                     </td>
-                                    <td className="font-bold text-primary">
-                                        {formatCurrency(store.totalProfit)}
-                                    </td>
-                                    <td>
-                                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${store.profitMargin >= 30
-                                                ? 'bg-green-100 text-green-800'
-                                                : store.profitMargin >= 20
-                                                    ? 'bg-blue-100 text-blue-800'
-                                                    : 'bg-yellow-100 text-yellow-800'
-                                            }`}>
-                                            {store.profitMargin.toFixed(1)}%
-                                        </span>
-                                    </td>
                                     <td>{store.productsSold}</td>
                                     <td>{store.ordersCount}</td>
                                 </tr>
@@ -205,10 +174,6 @@ export default function OperationsStoreFinancialsPage() {
                                 <td className="text-orange-700">
                                     {formatCurrency(data.totals.totalCost)}
                                 </td>
-                                <td className="text-primary">
-                                    {formatCurrency(data.totals.totalProfit)}
-                                </td>
-                                <td>{data.totals.profitMargin.toFixed(1)}%</td>
                                 <td>{data.totals.productsSold}</td>
                                 <td>{data.totals.ordersCount}</td>
                             </tr>
@@ -217,48 +182,27 @@ export default function OperationsStoreFinancialsPage() {
                 </div>
             </div>
 
-            {/* Financial Breakdown */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="card p-6">
-                    <h3 className="font-bold text-secondary-800 mb-4">توزيع الإيرادات</h3>
-                    <div className="space-y-3">
-                        {data.stores.slice(0, 5).map((store) => {
-                            const percentage = (store.totalRevenue / data.totals.totalRevenue) * 100;
-                            return (
-                                <div key={store.categoryId}>
-                                    <div className="flex justify-between text-sm mb-1">
-                                        <span>{store.categoryName}</span>
-                                        <span className="font-medium">{percentage.toFixed(1)}%</span>
-                                    </div>
-                                    <div className="w-full bg-gray-200 rounded-full h-2">
-                                        <div
-                                            className="bg-primary rounded-full h-2 transition-all"
-                                            style={{ width: `${percentage}%` }}
-                                        />
-                                    </div>
+            {/* Revenue Distribution */}
+            <div className="card p-6">
+                <h3 className="font-bold text-secondary-800 mb-4">توزيع الإيرادات</h3>
+                <div className="space-y-3">
+                    {data.stores.slice(0, 5).map((store) => {
+                        const percentage = (store.totalRevenue / data.totals.totalRevenue) * 100;
+                        return (
+                            <div key={store.categoryId}>
+                                <div className="flex justify-between text-sm mb-1">
+                                    <span>{store.categoryName}</span>
+                                    <span className="font-medium">{percentage.toFixed(1)}%</span>
                                 </div>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                <div className="card p-6">
-                    <h3 className="font-bold text-secondary-800 mb-4">الأكثر ربحية</h3>
-                    <div className="space-y-3">
-                        {data.stores.slice(0, 5).map((store, index) => (
-                            <div key={store.categoryId} className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-sm font-bold">
-                                        {index + 1}
-                                    </span>
-                                    <span className="font-medium">{store.categoryName}</span>
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                    <div
+                                        className="bg-primary rounded-full h-2 transition-all"
+                                        style={{ width: `${percentage}%` }}
+                                    />
                                 </div>
-                                <span className="text-primary font-bold">
-                                    {formatCurrency(store.totalProfit)}
-                                </span>
                             </div>
-                        ))}
-                    </div>
+                        );
+                    })}
                 </div>
             </div>
         </div>

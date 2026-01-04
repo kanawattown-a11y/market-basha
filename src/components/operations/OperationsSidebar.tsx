@@ -42,7 +42,7 @@ const menuItems = [
     { href: '/operations/reviews', label: 'التقييمات', icon: Star },
     { href: '/operations/tickets', label: 'التذاكر', icon: Ticket },
     { href: '/operations/financials', label: 'التقارير المالية', icon: BarChart3 },
-    { href: '/operations/stores/financials', label: 'أرباح المتاجر', icon: BarChart3 },
+    { href: '/operations/stores/financials', label: 'تقارير المتاجر', icon: BarChart3 },
     { href: '/operations/notifications', label: 'الإشعارات', icon: Bell },
 ];
 

@@ -79,9 +79,12 @@ export async function DELETE(
             );
         }
 
-        await prisma.category.delete({ where: { id } });
+        await prisma.category.update({
+            where: { id },
+            data: { deletedAt: new Date() },
+        });
 
-        return NextResponse.json({ message: 'تم الحذف' });
+        return NextResponse.json({ message: 'تم نقل المتجر إلى سلة المهملات' });
     } catch (error) {
         console.error('Delete category error:', error);
         return NextResponse.json({ message: 'حدث خطأ' }, { status: 500 });

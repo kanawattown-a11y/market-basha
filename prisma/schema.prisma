@@ -88,6 +88,7 @@ model User {
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
   lastLoginAt   DateTime?
+  deletedAt     DateTime?  // Soft delete
   
   // العلاقات
   addresses          Address[]
@@ -168,6 +169,7 @@ model Category {
   
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime? // Soft delete
   
   @@index([parentId])
   @@index([isActive])
@@ -207,6 +209,7 @@ model Product {
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  deletedAt       DateTime? // Soft delete
   
   orderItems      OrderItem[]
   offerProducts   OfferProduct[]
@@ -251,6 +254,7 @@ model Offer {
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  deletedAt   DateTime? // Soft delete
   
   products    OfferProduct[]
   

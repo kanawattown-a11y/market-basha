@@ -64,9 +64,12 @@ export async function DELETE(
 
         const { id } = await params;
 
-        await prisma.offer.delete({ where: { id } });
+        await prisma.offer.update({
+            where: { id },
+            data: { deletedAt: new Date() },
+        });
 
-        return NextResponse.json({ message: 'تم الحذف' });
+        return NextResponse.json({ message: 'تم نقل العرض إلى سلة المهملات' });
     } catch (error) {
         console.error('Delete offer error:', error);
         return NextResponse.json({ message: 'حدث خطأ' }, { status: 500 });

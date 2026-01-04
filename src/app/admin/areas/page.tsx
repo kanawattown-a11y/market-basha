@@ -9,7 +9,6 @@ interface ServiceArea {
     name: string;
     deliveryFee: number;
     driverDeliveryCost?: number | null;
-    minOrderAmount: number;
     isActive: boolean;
 }
 
@@ -18,7 +17,7 @@ export default function AdminAreasPage() {
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [formData, setFormData] = useState({ name: '', deliveryFee: 5000, driverDeliveryCost: 0, minOrderAmount: 0, isActive: true });
+    const [formData, setFormData] = useState({ name: '', deliveryFee: 5000, driverDeliveryCost: 0, isActive: true });
 
     const fetchAreas = async () => {
         try {
@@ -55,7 +54,7 @@ export default function AdminAreasPage() {
                 fetchAreas();
                 setShowForm(false);
                 setEditingId(null);
-                setFormData({ name: '', deliveryFee: 5000, driverDeliveryCost: 0, minOrderAmount: 0, isActive: true });
+                setFormData({ name: '', deliveryFee: 5000, driverDeliveryCost: 0, isActive: true });
             }
         } catch (error) {
             console.error('Error saving area:', error);
@@ -67,7 +66,6 @@ export default function AdminAreasPage() {
             name: area.name,
             deliveryFee: Number(area.deliveryFee),
             driverDeliveryCost: Number(area.driverDeliveryCost || 0),
-            minOrderAmount: Number(area.minOrderAmount),
             isActive: area.isActive,
         });
         setEditingId(area.id);
@@ -107,7 +105,7 @@ export default function AdminAreasPage() {
                         {editingId ? 'تعديل المنطقة' : 'إضافة منطقة جديدة'}
                     </h3>
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">اسم المنطقة</label>
                                 <input
@@ -136,16 +134,6 @@ export default function AdminAreasPage() {
                                     onChange={(e) => setFormData({ ...formData, driverDeliveryCost: parseInt(e.target.value) })}
                                     className="input"
                                     placeholder="تكلفة التوصيل للسائق"
-                                    min="0"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">الحد الأدنى للطلب (ل.س)</label>
-                                <input
-                                    type="number"
-                                    value={formData.minOrderAmount}
-                                    onChange={(e) => setFormData({ ...formData, minOrderAmount: parseInt(e.target.value) })}
-                                    className="input"
                                     min="0"
                                 />
                             </div>
@@ -209,7 +197,7 @@ export default function AdminAreasPage() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-2 text-sm">
+                            <div className="grid grid-cols-2 gap-2 text-sm">
                                 <div className="bg-gray-50 p-2 rounded-lg">
                                     <p className="text-gray-500">رسوم التوصيل</p>
                                     <p className="font-bold text-primary">{formatCurrency(Number(area.deliveryFee))}</p>
@@ -219,10 +207,6 @@ export default function AdminAreasPage() {
                                     <p className="font-bold text-orange-700">
                                         {area.driverDeliveryCost ? formatCurrency(Number(area.driverDeliveryCost)) : '-'}
                                     </p>
-                                </div>
-                                <div className="bg-gray-50 p-2 rounded-lg">
-                                    <p className="text-gray-500">الحد الأدنى</p>
-                                    <p className="font-bold text-secondary-800">{formatCurrency(Number(area.minOrderAmount))}</p>
                                 </div>
                             </div>
                         </div>

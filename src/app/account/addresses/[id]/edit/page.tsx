@@ -10,9 +10,14 @@ interface ServiceArea {
     deliveryFee: number;
 }
 
-export default function EditAddressPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function EditAddressPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+
+    return <EditAddressClient id={id} />;
+}
+
+function EditAddressClient({ id }: { id: string }) {
     const router = useRouter();
-    const [id, setId] = useState<string>('');
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
     const [error, setError] = useState('');
@@ -28,15 +33,6 @@ export default function EditAddressPage({ params }: { params: Promise<{ id: stri
     });
 
     useEffect(() => {
-        // Unwrap params promise
-        params.then((resolvedParams) => {
-            setId(resolvedParams.id);
-        });
-    }, [params]);
-
-    useEffect(() => {
-        if (!id) return; // Wait until id is set
-
         const fetchData = async () => {
             try {
                 // Fetch service areas
