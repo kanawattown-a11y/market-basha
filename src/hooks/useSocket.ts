@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { io, Socket } from 'socket.io-client';
 
 interface UseSocketOptions {
     room?: string;
@@ -9,41 +8,55 @@ interface UseSocketOptions {
     onDisconnect?: () => void;
 }
 
+// Fallback when Socket.IO is not available
+const noop = () => () => { };
+
 export function useSocket(options: UseSocketOptions = {}) {
-    const [socket, setSocket] = useState<Socket | null>(null);
     const [isConnected, setIsConnected] = useState(false);
+    const [socket, setSocket] = useState<any>(null);
 
     useEffect(() => {
-        // Initialize socket connection
-        const socketInstance = io({
-            path: '/socket.io',
-            transports: ['websocket', 'polling'],
-        });
+        // Try to dynamically import socket.io-client
+        const initSocket = async () => {
+            try {
+                const { io } = await import('socket.io-client');
 
-        socketInstance.on('connect', () => {
-            console.log('Socket connected:', socketInstance.id);
-            setIsConnected(true);
+                const socketInstance = io({
+                    path: '/socket.io',
+                    transports: ['websocket', 'polling'],
+                });
 
-            // Join room if specified
-            if (options.room) {
-                socketInstance.emit('join-room', options.room);
+                socketInstance.on('connect', () => {
+                    console.log('Socket connected:', socketInstance.id);
+                    setIsConnected(true);
+
+                    // Join room if specified
+                    if (options.room) {
+                        socketInstance.emit('join-room', options.room);
+                    }
+
+                    options.onConnect?.();
+                });
+
+                socketInstance.on('disconnect', () => {
+                    console.log('Socket disconnected');
+                    setIsConnected(false);
+                    options.onDisconnect?.();
+                });
+
+                setSocket(socketInstance);
+
+                return () => {
+                    socketInstance.disconnect();
+                };
+            } catch (error) {
+                // Socket.IO not installed - fail silently, no auto-refresh
+                console.log('Socket.IO not available, running in offline mode');
+                setIsConnected(false);
             }
-
-            options.onConnect?.();
-        });
-
-        socketInstance.on('disconnect', () => {
-            console.log('Socket disconnected');
-            setIsConnected(false);
-            options.onDisconnect?.();
-        });
-
-        setSocket(socketInstance);
-
-        // Cleanup on unmount
-        return () => {
-            socketInstance.disconnect();
         };
+
+        initSocket();
     }, [options.room]);
 
     const on = useCallback((event: string, handler: (...args: any[]) => void) => {
@@ -51,6 +64,7 @@ export function useSocket(options: UseSocketOptions = {}) {
             socket.on(event, handler);
             return () => socket.off(event, handler);
         }
+        return noop; // Return empty function when socket not available
     }, [socket]);
 
     const emit = useCallback((event: string, data: any) => {
