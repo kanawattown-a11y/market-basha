@@ -109,13 +109,14 @@ export default function LoginPage() {
                                     type="text"
                                     value={formData.identifier}
                                     onChange={(e) => setFormData({ ...formData, identifier: e.target.value })}
-                                    className="input pl-12 text-right"
-                                    placeholder="مثال: 912345678 أو email@example.com"
+                                    className="input pl-28 text-left"
+                                    placeholder="912345678"
                                     required
-                                    dir="auto"
+                                    dir="ltr"
                                 />
-                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                                    <Phone className="w-5 h-5" />
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 text-gray-500 pointer-events-none">
+                                    <Phone className="w-5 h-5 text-gray-400" />
+                                    <span className="font-bold border-l border-gray-300 pl-2 pointer-events-none select-none">+963</span>
                                 </div>
                             </div>
                         </div>

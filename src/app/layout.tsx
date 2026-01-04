@@ -25,16 +25,20 @@ export const metadata: Metadata = {
     manifest: '/manifest.json',
 };
 
-export default function RootLayout({
+import { getSession } from '@/lib/auth';
+
+export default async function RootLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    const user = await getSession();
+
     return (
         <html lang="ar" dir="rtl" suppressHydrationWarning>
             <body className="font-cairo antialiased" suppressHydrationWarning>
                 <CartProvider>
-                    <NotificationAutoRegister />
+                    <NotificationAutoRegister user={user} />
                     {children}
                 </CartProvider>
             </body>

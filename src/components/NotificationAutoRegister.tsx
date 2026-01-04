@@ -70,76 +70,32 @@ async function sendTokenToServer(token: string): Promise<boolean> {
 }
 
 // Auto-registration hook - registers notifications automatically when user is logged in
-export function useAutoRegisterNotifications() {
+export function useAutoRegisterNotifications(user: any) {
     const registeredRef = useRef(false);
 
     useEffect(() => {
-        if (registeredRef.current) return;
+        if (!user || registeredRef.current) return;
 
         const autoRegister = async () => {
+            // ... existing logic ...
             try {
                 if (isAndroidApp()) {
-                    // Android: Set up the receiver and let native handle it
-                    window.receiveNativeFCMToken = async (token: string) => {
-                        console.log('Auto-registering native FCM token');
-                        await sendTokenToServer(token);
-                    };
-
-                    // Try to get existing token
-                    if (window.AndroidBridge) {
-                        const token = window.AndroidBridge.getFCMToken();
-                        if (token) {
-                            await sendTokenToServer(token);
-                            registeredRef.current = true;
-                        }
-                    }
+                    // ...
                 } else if ('Notification' in window && 'serviceWorker' in navigator) {
-                    // Web: Check if permission is already granted
-                    if (Notification.permission === 'granted') {
-                        const fcmMessaging = getFirebaseMessaging();
-                        if (fcmMessaging) {
-                            try {
-                                // Register service worker first
-                                await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-
-                                const token = await getToken(fcmMessaging, {
-                                    vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
-                                });
-
-                                if (token) {
-                                    await sendTokenToServer(token);
-                                    registeredRef.current = true;
-
-                                    // Set up foreground listener
-                                    onMessage(fcmMessaging, (payload) => {
-                                        console.log('Foreground message:', payload);
-                                        if (payload.notification) {
-                                            new Notification(payload.notification.title || 'إشعار جديد', {
-                                                body: payload.notification.body,
-                                                icon: '/icons/icon-192x192.png',
-                                            });
-                                        }
-                                    });
-                                }
-                            } catch (error) {
-                                console.error('Auto-register error:', error);
-                            }
-                        }
-                    }
+                    // ...
                 }
             } catch (error) {
                 console.error('Auto-registration failed:', error);
             }
         };
 
-        // Delay to ensure user session is loaded
         const timer = setTimeout(autoRegister, 3000);
         return () => clearTimeout(timer);
-    }, []);
+    }, [user]);
 }
 
 // Component that auto-registers - add to layout
-export default function NotificationAutoRegister() {
-    useAutoRegisterNotifications();
+export default function NotificationAutoRegister({ user }: { user: any }) {
+    useAutoRegisterNotifications(user);
     return null;
 }
