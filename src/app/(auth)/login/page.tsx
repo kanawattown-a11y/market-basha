@@ -27,8 +27,18 @@ export default function LoginPage() {
 
             // Check if it's NOT an email (doesn't contain @)
             if (!identifier.includes('@')) {
-                // Remove any existing + or 963 at start
-                identifier = identifier.replace(/^\+?963/, '');
+                // Remove non-digit chars to clean up
+                identifier = identifier.replace(/\D/g, '');
+
+                // Handle different formats
+                if (identifier.startsWith('963')) {
+                    identifier = identifier.substring(3); // Remove 963
+                }
+
+                if (identifier.startsWith('0')) {
+                    identifier = identifier.substring(1); // Remove leading 0
+                }
+
                 // Add +963 prefix
                 identifier = `+963${identifier}`;
             }

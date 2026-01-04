@@ -30,7 +30,7 @@ export default function AdminHeader({ user }: AdminHeaderProps) {
     useEffect(() => {
         const fetchNotifications = async () => {
             try {
-                const res = await fetch('/api/notifications?limit=5');
+                const res = await fetch('/api/notifications?limit=5', { cache: 'no-store' });
                 if (res.ok) {
                     const data = await res.json();
                     setNotifications(data.notifications || []);
