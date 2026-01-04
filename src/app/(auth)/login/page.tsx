@@ -22,10 +22,24 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
+            // Auto-add +963 prefix for phone numbers (not emails)
+            let identifier = formData.identifier.trim();
+
+            // Check if it's NOT an email (doesn't contain @)
+            if (!identifier.includes('@')) {
+                // Remove any existing + or 963 at start
+                identifier = identifier.replace(/^\+?963/, '');
+                // Add +963 prefix
+                identifier = `+963${identifier}`;
+            }
+
             const res = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                    identifier,
+                    password: formData.password
+                }),
             });
 
             const data = await res.json();
@@ -77,13 +91,16 @@ export default function LoginPage() {
 
                         <div>
                             <label className="label">رقم الهاتف أو البريد الإلكتروني</label>
+                            <p className="text-xs text-gray-500 mb-2">
+                                💡 للهاتف: أدخل الرقم بدون بريفكس (سيتم إضافة +963 تلقائياً)
+                            </p>
                             <div className="relative">
                                 <input
                                     type="text"
                                     value={formData.identifier}
                                     onChange={(e) => setFormData({ ...formData, identifier: e.target.value })}
                                     className="input pl-12 text-right"
-                                    placeholder="أدخل رقم الهاتف أو البريد"
+                                    placeholder="مثال: 912345678 أو email@example.com"
                                     required
                                     dir="auto"
                                 />

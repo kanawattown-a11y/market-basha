@@ -12,6 +12,15 @@ datasource db {
 
 // ==================== ENUMS ====================
 
+enum AuditEntity {
+  USER
+  CATEGORY
+  PRODUCT
+  OFFER
+  ORDER
+  SETTINGS
+}
+
 enum UserRole {
   ADMIN
   OPERATIONS
@@ -289,6 +298,7 @@ model Order {
   
   subtotal        Decimal     @db.Decimal(10, 2)
   deliveryFee     Decimal     @db.Decimal(10, 2) @default(0) // رسوم التوصيل من العميل
+  extraStoreFee   Decimal     @db.Decimal(10, 2) @default(0) // رسوم إضافية للمتاجر المتعددة (5000 لكل متجر إضافي)
   driverDeliveryCost Decimal? @db.Decimal(10, 2) // تكلفة التوصيل للسائق
   discount        Decimal     @db.Decimal(10, 2) @default(0)
   total           Decimal     @db.Decimal(10, 2)
@@ -467,5 +477,17 @@ model Settings {
   value       String
   description String?
   
+  createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// New model for system-wide settings
+model SystemSettings {
+  id        String   @id @default("system")
+  
+  // Financial settings
+  extraStoreFeePerStore Decimal @db.Decimal(10, 2) @default(5000) // رسوم المتاجر الإضافية
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

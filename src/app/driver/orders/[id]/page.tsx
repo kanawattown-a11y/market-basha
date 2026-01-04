@@ -176,7 +176,7 @@ export default function DriverOrderDetailPage() {
                         ) : (
                             <>
                                 <CheckCircle className="w-5 h-5" />
-                                تأكيد التوصيل
+                                تم توصيل الطلب
                             </>
                         )}
                     </button>

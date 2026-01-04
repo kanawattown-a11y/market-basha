@@ -81,7 +81,8 @@ export async function notifyOrderStatusChange(
     orderId: string,
     status: string,
     customerId: string,
-    driverId?: string | null
+    driverId?: string | null,
+    driverName?: string
 ): Promise<void> {
     const statusMessages: Record<string, string> = {
         CONFIRMED: 'تم تأكيد طلبك وسيتم تجهيزه قريباً',
@@ -90,6 +91,7 @@ export async function notifyOrderStatusChange(
         OUT_FOR_DELIVERY: 'طلبك في الطريق إليك',
         DELIVERED: 'تم توصيل طلبك بنجاح',
         CANCELLED: 'تم إلغاء طلبك',
+        DRIVER_ASSIGNED: driverName ? `تم تعيين السائق ${driverName} لتوصيل طلبك` : 'تم تعيين سائق لطلبك',
     };
 
     const message = statusMessages[status] || `تم تحديث حالة طلبك إلى ${status}`;
@@ -103,13 +105,24 @@ export async function notifyOrderStatusChange(
         { orderId }
     );
 
-    // إشعار السائق عند التعيين
-    if (driverId && status === 'OUT_FOR_DELIVERY') {
+    // إشعار السائق عند التعيين (when status is DRIVER_ASSIGNED)
+    if (driverId && status === 'DRIVER_ASSIGNED') {
         await createAndSendNotification(
             driverId,
             'DRIVER_ASSIGNED',
             'طلب جديد',
             'تم تعيينك لتوصيل طلب جديد',
+            { orderId }
+        );
+    }
+
+    // إشعار السائق أيضاً عند OUT_FOR_DELIVERY (للتوافق مع الحالات القديمة)
+    if (driverId && status === 'OUT_FOR_DELIVERY') {
+        await createAndSendNotification(
+            driverId,
+            'DRIVER_ASSIGNED',
+            'طلب جاهز للتوصيل',
+            'الطلب جاهز ويمكنك بدء التوصيل',
             { orderId }
         );
     }

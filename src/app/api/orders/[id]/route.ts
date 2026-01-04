@@ -117,7 +117,7 @@ export async function PUT(
     try {
         const user = await getSession();
 
-        if (!user || !['ADMIN', 'OPERATIONS'].includes(user.role)) {
+        if (!user || !['ADMIN', 'OPERATIONS', 'DRIVER'].includes(user.role)) {
             return NextResponse.json(
                 { message: 'غير مصرح لك بهذا الإجراء' },
                 { status: 403 }
@@ -138,6 +138,24 @@ export async function PUT(
                 { message: 'الطلب غير موجود' },
                 { status: 404 }
             );
+        }
+
+        // Check permissions
+        if (user.role === 'DRIVER') {
+            // Drivers can only update their own orders
+            if (oldOrder.driverId !== user.id) {
+                return NextResponse.json(
+                    { message: 'لا يمكنك تحديث هذا الطلب' },
+                    { status: 403 }
+                );
+            }
+            // Drivers can only update status (not assign drivers, etc)
+            if (driverId !== undefined || internalNotes !== undefined || driverDeliveryCost !== undefined) {
+                return NextResponse.json(
+                    { message: 'غير مصرح لك بهذا الإجراء' },
+                    { status: 403 }
+                );
+            }
         }
 
         const updateData: Record<string, unknown> = {};
@@ -213,7 +231,19 @@ export async function PUT(
 
         // When driver is assigned, set them as busy (not available)
         if (driverId && driverId !== oldOrder.driverId) {
-            await notifyOrderStatusChange(id, 'DRIVER_ASSIGNED', order.customerId, driverId);
+            // Get driver info for notification
+            const driver = await prisma.user.findUnique({
+                where: { id: driverId },
+                select: { name: true }
+            });
+
+            await notifyOrderStatusChange(
+                id,
+                'DRIVER_ASSIGNED',
+                order.customerId,
+                driverId,
+                driver?.name
+            );
 
             // Set new driver as busy
             await prisma.user.update({
@@ -228,6 +258,19 @@ export async function PUT(
                     data: { isAvailable: true },
                 });
             }
+        }
+
+        // Broadcast order update via Socket.IO
+        try {
+            const { broadcastOrderEvent } = await import('@/lib/socket');
+            broadcastOrderEvent('order:updated', {
+                id: order.id,
+                orderNumber: order.orderNumber,
+                status: order.status,
+                driverId: order.driverId,
+            });
+        } catch (error) {
+            console.error('Socket.IO broadcast error:', error);
         }
 
         // Audit log

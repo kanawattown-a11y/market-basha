@@ -3,8 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { orderSchema } from '@/lib/validations';
 import { createAuditLog } from '@/lib/audit';
-import { notifyNewOrder, notifyOrderStatusChange } from '@/lib/notifications';
-import { generateOrderNumber } from '@/lib/utils';
+import { notifyNewOrder, notifyOrderStatusChange, createAndSendNotification } from '@/lib/notifications';
+import { generateOrderNumber, formatCurrency } from '@/lib/utils';
 
 // GET /api/orders - Get orders
 export async function GET(request: NextRequest) {
@@ -138,10 +138,14 @@ export async function POST(request: NextRequest) {
 
         if (!serviceArea) {
             return NextResponse.json(
-                { message: 'المنطقة غير متاحة للتوصيل حالياً' },
+                { message: 'المنطقة غير مفعلة أو غير موجودة' },
                 { status: 400 }
             );
         }
+
+        // Variables to track multi-store fee (before transaction)
+        let numberOfStores = 0;
+        let extraStoreFee = 0;
 
         // ATOMIC TRANSACTION: Create order and update stock together
         const order = await prisma.$transaction(async (tx) => {
@@ -180,12 +184,16 @@ export async function POST(request: NextRequest) {
             let subtotal = 0;
             const orderItems = [];
             const stockUpdates = [];
+            const uniqueStoreCategories = new Set<string>(); // Track unique store categories
 
             for (const item of items) {
                 const product = products.find(p => p.id === item.productId);
                 if (!product) {
                     throw new Error(`المنتج غير موجود`);
                 }
+
+                // Track category (store)
+                uniqueStoreCategories.add(product.categoryId);
 
                 // Check stock availability inside transaction
                 if (product.trackStock && product.stock < item.quantity) {
@@ -218,10 +226,23 @@ export async function POST(request: NextRequest) {
             }
 
             const deliveryFee = Number(serviceArea.deliveryFee);
+
+            // Get extra store fee from system settings
+            const settings = await tx.systemSettings.findUnique({
+                where: { id: 'system' }
+            });
+            const feePerStore = settings?.extraStoreFeePerStore ? Number(settings.extraStoreFeePerStore) : 5000;
+
+            // Calculate multi-store fee
+            numberOfStores = uniqueStoreCategories.size;
+            // Add configured fee for each additional store (first store is free)
+            extraStoreFee = numberOfStores > 1 ? (numberOfStores - 1) * feePerStore : 0;
+
+            const total = subtotal + deliveryFee + extraStoreFee;
+
             const defaultDriverCost = serviceArea.driverDeliveryCost
                 ? Number(serviceArea.driverDeliveryCost)
                 : null;
-            const total = subtotal + deliveryFee;
 
             // Create order inside transaction
             const newOrder = await tx.order.create({
@@ -231,6 +252,7 @@ export async function POST(request: NextRequest) {
                     addressId,
                     subtotal,
                     deliveryFee,
+                    extraStoreFee, // Add the new fee here
                     driverDeliveryCost: defaultDriverCost, // نسخ تلقائي من المنطقة
                     total,
                     notes,
@@ -271,6 +293,36 @@ export async function POST(request: NextRequest) {
             // Don't fail the order if notification fails
         }
 
+        // Notify customer about extra store fee if applicable
+        if (extraStoreFee > 0) {
+            try {
+                await createAndSendNotification(
+                    user.id,
+                    'ORDER_STATUS',
+                    'ملاحظة مهمة',
+                    `تم إضافة ${formatCurrency(extraStoreFee)} رسوم إضافية لطلبك لأنك اشتريت من ${numberOfStores} متاجر مختلفة`,
+                    { orderId: order.id }
+                );
+            } catch (error) {
+                console.error('Multi-store notification error:', error);
+            }
+        }
+
+        // Broadcast order creation via Socket.IO
+        try {
+            const { broadcastOrderEvent } = await import('@/lib/socket');
+            broadcastOrderEvent('order:created', {
+                id: order.id,
+                orderNumber: order.orderNumber,
+                total: order.total,
+                status: order.status,
+                createdAt: order.createdAt,
+            });
+        } catch (error) {
+            console.error('Socket.IO broadcast error:', error);
+        }
+
+        // Audit log
         try {
             await createAuditLog({
                 userId: user.id,

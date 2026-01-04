@@ -9,9 +9,12 @@ import {
     User,
     ChevronRight,
     ChevronLeft,
-    UserPlus
+    UserPlus,
+    Wifi,
+    WifiOff
 } from 'lucide-react';
 import { formatCurrency, formatDateTime, translateOrderStatus, getOrderStatusColor } from '@/lib/utils';
+import { useSocket } from '@/hooks/useSocket';
 import DriverAssignmentModal from '@/components/admin/DriverAssignmentModal';
 
 interface Order {
@@ -61,12 +64,34 @@ export default function AdminOrdersPage() {
         }
     };
 
+    // Socket.IO for real-time updates
+    const { isConnected, on } = useSocket({
+        room: 'operations',
+    });
+
     useEffect(() => {
         fetchOrders();
-        // Poll for updates every 5 seconds
-        const interval = setInterval(fetchOrders, 5000);
-        return () => clearInterval(interval);
     }, [page, statusFilter, search]);
+
+    // Listen for real-time order updates
+    useEffect(() => {
+        if (!on) return;
+
+        const unsubscribeCreated = on('order:created', (data) => {
+            console.log('New order received:', data);
+            fetchOrders();
+        });
+
+        const unsubscribeUpdated = on('order:updated', (data) => {
+            console.log('Order updated:', data);
+            fetchOrders();
+        });
+
+        return () => {
+            unsubscribeCreated?.();
+            unsubscribeUpdated?.();
+        };
+    }, [on]);
 
     const openDriverModal = (order: Order) => {
         setSelectedOrder(order);

@@ -9,10 +9,13 @@ import {
     User,
     ChevronRight,
     ChevronLeft,
-    UserPlus
+    UserPlus,
+    Wifi,
+    WifiOff
 } from 'lucide-react';
 import { formatCurrency, formatDateTime, translateOrderStatus, getOrderStatusColor } from '@/lib/utils';
 import DriverAssignmentModal from '@/components/admin/DriverAssignmentModal';
+import { useSocket } from '@/hooks/useSocket';
 
 interface Order {
     id: string;
@@ -61,12 +64,34 @@ export default function AdminOrdersPage() {
         }
     };
 
+    // Socket.IO for real-time updates
+    const { isConnected, on } = useSocket({
+        room: 'admin',
+    });
+
     useEffect(() => {
         fetchOrders();
-        // Poll for updates every 5 seconds
-        const interval = setInterval(fetchOrders, 5000);
-        return () => clearInterval(interval);
     }, [page, statusFilter, search]);
+
+    // Listen for real-time order updates
+    useEffect(() => {
+        if (!on) return;
+
+        const unsubscribeCreated = on('order:created', (data) => {
+            console.log('New order received:', data);
+            fetchOrders(); // Refresh the list
+        });
+
+        const unsubscribeUpdated = on('order:updated', (data) => {
+            console.log('Order updated:', data);
+            fetchOrders(); // Refresh the list
+        });
+
+        return () => {
+            unsubscribeCreated?.();
+            unsubscribeUpdated?.();
+        };
+    }, [on]);
 
     const openDriverModal = (order: Order) => {
         setSelectedOrder(order);
@@ -132,6 +157,21 @@ export default function AdminOrdersPage() {
                         <option value="CANCELLED">ملغي</option>
                     </select>
                 </div>
+            </div>
+
+            {/* Connection Status */}
+            <div className="flex items-center gap-2 text-sm">
+                {isConnected ? (
+                    <>
+                        <Wifi className="w-4 h-4 text-green-600" />
+                        <span className="text-green-600">متصل - تحديث فوري</span>
+                    </>
+                ) : (
+                    <>
+                        <WifiOff className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-500">غير متصل</span>
+                    </>
+                )}
             </div>
 
             <div className="card">

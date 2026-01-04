@@ -22,10 +22,15 @@ export default function DriverActiveOrdersPage() {
     useEffect(() => {
         const fetchOrders = async () => {
             try {
-                const res = await fetch('/api/orders?status=OUT_FOR_DELIVERY&myDeliveries=true');
+                // Get ALL orders assigned to this driver (not just OUT_FOR_DELIVERY)
+                const res = await fetch('/api/orders?myDeliveries=true');
                 if (res.ok) {
                     const data = await res.json();
-                    setOrders(data.orders);
+                    // Filter active orders (not delivered or cancelled)
+                    const activeOrders = data.orders.filter((o: Order) =>
+                        o.status !== 'DELIVERED' && o.status !== 'CANCELLED'
+                    );
+                    setOrders(activeOrders);
                 }
             } catch (error) {
                 console.error('Error fetching orders:', error);

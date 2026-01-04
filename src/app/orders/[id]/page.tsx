@@ -147,25 +147,27 @@ export default function OrderTrackingPage() {
                     )}
                 </div>
 
-                {/* Driver */}
-                {order.driver && (
-                    <div className="card p-4 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                                <Truck className="w-6 h-6 text-primary" />
+                {/* Driver Info - Only show during OUT_FOR_DELIVERY */}
+                {order.driver && order.status === 'OUT_FOR_DELIVERY' && (
+                    <div className="card p-4">
+                        <h3 className="font-bold text-secondary-800 mb-3">معلومات السائق</h3>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                                    <Truck className="w-6 h-6 text-primary" />
+                                </div>
+                                <div>
+                                    <p className="font-medium text-secondary-800">{order.driver.name}</p>
+                                    <p className="text-sm text-gray-500">السائق</p>
+                                </div>
                             </div>
-                            <div>
-                                <p className="font-medium text-secondary-800">{order.driver.name}</p>
-                                <p className="text-sm text-gray-500">السائق</p>
-                            </div>
+                            <a href={`tel:${order.driver.phone}`} className="btn btn-primary btn-sm">
+                                <Phone className="w-4 h-4" />
+                                اتصال
+                            </a>
                         </div>
-                        <a href={`tel:${order.driver.phone}`} className="btn btn-primary btn-sm">
-                            <Phone className="w-4 h-4" />
-                            اتصال
-                        </a>
                     </div>
                 )}
-
                 {/* Address */}
                 <div className="card p-4">
                     <h3 className="font-bold text-secondary-800 mb-3 flex items-center gap-2">

@@ -186,7 +186,7 @@ export default function AccountOrderDetailPage() {
                 </div>
             )}
 
-            {/* Driver */}
+            {/* Driver - Only show during delivery */}
             {order.driver && order.status === 'OUT_FOR_DELIVERY' && (
                 <div className="card p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
