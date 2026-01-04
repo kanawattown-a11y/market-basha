@@ -30,6 +30,7 @@ export default function NewProductPage() {
         description: '',
         price: 0,
         compareAtPrice: 0,
+        costPrice: 0,
         categoryId: '',
         stock: 0,
         unit: 'كيلو',
@@ -145,7 +146,7 @@ export default function NewProductPage() {
                 return;
             }
 
-            router.push('/operations/products');
+            router.push('/admin/products');
         } catch {
             setError('حدث خطأ في الاتصال');
         } finally {
@@ -156,7 +157,7 @@ export default function NewProductPage() {
     return (
         <div className="space-y-4 md:space-y-6">
             <div className="flex items-center gap-4">
-                <Link href="/operations/products" className="text-gray-400 hover:text-gray-600">
+                <Link href="/admin/products" className="text-gray-400 hover:text-gray-600">
                     <ChevronLeft className="w-6 h-6" />
                 </Link>
                 <h1 className="text-xl md:text-2xl font-bold text-secondary-800">إضافة منتج جديد</h1>
@@ -374,6 +375,21 @@ export default function NewProductPage() {
                         </div>
 
                         <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                💰 رأس المال (التكلفة)
+                            </label>
+                            <input
+                                type="number"
+                                value={formData.costPrice}
+                                onChange={(e) => setFormData({ ...formData, costPrice: parseInt(e.target.value) })}
+                                className="input"
+                                min="0"
+                                placeholder="تكلفة المنتج"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">للتقارير المالية فقط</p>
+                        </div>
+
+                        <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">الكمية</label>
                             <input
                                 type="number"
@@ -458,7 +474,7 @@ export default function NewProductPage() {
                     >
                         {loading ? <div className="spinner"></div> : <><Save className="w-5 h-5" /> حفظ المنتج</>}
                     </button>
-                    <Link href="/operations/products" className="btn btn-outline w-full sm:w-auto text-center">
+                    <Link href="/admin/products" className="btn btn-outline w-full sm:w-auto text-center">
                         إلغاء
                     </Link>
                 </div>

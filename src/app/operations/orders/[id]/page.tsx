@@ -26,6 +26,7 @@ interface OrderDetail {
     total: number;
     subtotal: number;
     deliveryFee: number;
+    driverDeliveryCost: number | null;
     discount: number;
     paymentMethod: string;
     notes: string | null;
@@ -65,7 +66,7 @@ export default function AdminOrderDetailPage() {
         return () => clearInterval(interval);
     }, [id]);
 
-    const updateOrder = async (data: { status?: string; driverId?: string }) => {
+    const updateOrder = async (data: { status?: string; driverId?: string; driverDeliveryCost?: number }) => {
         setUpdating(true);
         try {
             await fetch(`/api/orders/${id}`, {
@@ -185,8 +186,26 @@ export default function AdminOrderDetailPage() {
                                 <span>{formatCurrency(Number(order.subtotal))}</span>
                             </div>
                             <div className="flex justify-between text-sm">
-                                <span className="text-gray-500">التوصيل</span>
+                                <span className="text-gray-500">التوصيل (من العميل)</span>
                                 <span>{formatCurrency(Number(order.deliveryFee))}</span>
+                            </div>
+                            <div className="border-l-2 border-primary p-2 bg-gray-50 rounded">
+                                <div className="flex justify-between items-center text-sm mb-1">
+                                    <span className="text-gray-600 font-medium">💰 تكلفة السائق:</span>
+                                    <input
+                                        type="number"
+                                        defaultValue={order.driverDeliveryCost || 0}
+                                        onBlur={(e) => {
+                                            const cost = parseFloat(e.target.value) || 0;
+                                            updateOrder({ driverDeliveryCost: cost });
+                                        }}
+                                        className="w-24 px-2 py-1 border rounded text-right"
+                                        min="0"
+                                        step="100"
+                                    />
+                                    <span className="text-xs text-gray-500">ل.س</span>
+                                </div>
+                                <p className="text-xs text-gray-500">للتقارير المالية</p>
                             </div>
                             {order.discount > 0 && (
                                 <div className="flex justify-between text-sm text-green-600">

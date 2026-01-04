@@ -34,6 +34,7 @@ export default function EditProductPage() {
         description: '',
         price: 0,
         compareAtPrice: 0,
+        costPrice: 0,
         categoryId: '',
         stock: 0,
         unit: 'كيلو',
@@ -60,6 +61,7 @@ export default function EditProductPage() {
                         description: data.product.description || '',
                         price: Number(data.product.price),
                         compareAtPrice: Number(data.product.compareAtPrice) || 0,
+                        costPrice: Number(data.product.costPrice) || 0,
                         categoryId: data.product.categoryId,
                         stock: data.product.stock,
                         unit: data.product.unit,
@@ -440,7 +442,23 @@ export default function EditProductPage() {
                                 value={formData.compareAtPrice}
                                 onChange={(e) => setFormData({ ...formData, compareAtPrice: parseInt(e.target.value) })}
                                 className="input"
+                                min="0"
                             />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                💰 رأس المال (التكلفة)
+                            </label>
+                            <input
+                                type="number"
+                                value={formData.costPrice}
+                                onChange={(e) => setFormData({ ...formData, costPrice: parseInt(e.target.value) })}
+                                className="input"
+                                min="0"
+                                placeholder="تكلفة المنتج"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">للتقارير المالية فقط</p>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">المخزون</label>

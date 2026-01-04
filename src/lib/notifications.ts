@@ -113,6 +113,17 @@ export async function notifyOrderStatusChange(
             { orderId }
         );
     }
+
+    // إشعار السائق عند إلغاء الطلب المُعيّن له
+    if (driverId && status === 'CANCELLED') {
+        await createAndSendNotification(
+            driverId,
+            'ORDER_CANCELLED',
+            'تم إلغاء الطلب',
+            'تم إلغاء الطلب المُعيّن لك',
+            { orderId }
+        );
+    }
 }
 
 // إشعار نفاذ المخزون
