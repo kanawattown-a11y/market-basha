@@ -12,15 +12,15 @@ export type AuditAction =
     | 'STATUS_CHANGE';
 
 export type AuditEntity =
-    | 'User'
-    | 'Product'
-    | 'Category'
-    | 'Order'
-    | 'Ticket'
-    | 'Offer'
-    | 'ServiceArea'
-    | 'Address'
-    | 'Settings';
+    | 'USER'
+    | 'PRODUCT'
+    | 'CATEGORY'
+    | 'ORDER'
+    | 'TICKET'
+    | 'OFFER'
+    | 'SERVICE_AREA'
+    | 'ADDRESS'
+    | 'SETTINGS';
 
 interface AuditLogData {
     userId?: string;

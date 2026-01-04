@@ -291,7 +291,7 @@ export async function PUT(
         await createAuditLog({
             userId: user.id,
             action: 'STATUS_CHANGE',
-            entity: 'Order',
+            entity: 'ORDER',
             entityId: id,
             oldData: { status: oldOrder.status, driverId: oldOrder.driverId },
             newData: updateData,

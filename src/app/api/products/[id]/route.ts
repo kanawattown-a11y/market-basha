@@ -120,7 +120,7 @@ export async function PUT(
         await createAuditLog({
             userId: user.id,
             action: 'UPDATE',
-            entity: 'Product',
+            entity: 'PRODUCT',
             entityId: product.id,
             oldData: oldProduct as unknown as Record<string, unknown>,
             newData: { ...data, serviceAreaIds } as Record<string, unknown>,
@@ -175,7 +175,7 @@ export async function DELETE(
         await createAuditLog({
             userId: user.id,
             action: 'DELETE',
-            entity: 'Product',
+            entity: 'PRODUCT',
             entityId: id,
             oldData: product as unknown as Record<string, unknown>,
         });

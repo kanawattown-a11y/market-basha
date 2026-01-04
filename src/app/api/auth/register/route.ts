@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
         // Log registration
         await createAuditLog({
             action: 'CREATE',
-            entity: 'User',
+            entity: 'USER',
             newData: { name, phone, email: email || null, status: 'PENDING' },
             ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
             userAgent: request.headers.get('user-agent') || undefined,

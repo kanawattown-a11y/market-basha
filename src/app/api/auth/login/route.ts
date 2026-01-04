@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
             // Log failed attempt
             await createAuditLog({
                 action: 'LOGIN',
-                entity: 'User',
+                entity: 'USER',
                 newData: { identifier, success: false, reason: result.message },
                 ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
                 userAgent: request.headers.get('user-agent') || undefined,
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
         await createAuditLog({
             userId: result.user!.id,
             action: 'LOGIN',
-            entity: 'User',
+            entity: 'USER',
             entityId: result.user!.id,
             newData: { success: true },
             ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,

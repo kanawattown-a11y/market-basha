@@ -196,7 +196,7 @@ export async function PUT(
         await createAuditLog({
             userId: currentUser.id,
             action: data.status && data.status !== oldUser.status ? 'STATUS_CHANGE' : 'UPDATE',
-            entity: 'User',
+            entity: 'USER',
             entityId: id,
             oldData: { name: oldUser.name, role: oldUser.role, status: oldUser.status },
             newData: data as Record<string, unknown>,
@@ -258,7 +258,7 @@ export async function DELETE(
         await createAuditLog({
             userId: currentUser.id,
             action: 'DELETE',
-            entity: 'User',
+            entity: 'USER',
             entityId: id,
             oldData: { name: user.name, email: user.email, role: user.role },
         });
