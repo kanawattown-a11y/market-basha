@@ -77,7 +77,6 @@ export async function PUT(request: NextRequest) {
             action: 'UPDATE',
             entity: 'SETTINGS',
             entityId: 'system',
-            description: `تحديث رسوم المتجر الإضافي من ${oldSettings?.extraStoreFeePerStore || 0} إلى ${extraStoreFeePerStore}`,
             oldData: (oldSettings || undefined) as unknown as Record<string, unknown>,
             newData: settings as unknown as Record<string, unknown>,
         });
