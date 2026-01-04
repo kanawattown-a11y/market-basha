@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
         await createAuditLog({
             userId: user.id,
             action: 'CREATE',
-            entity: 'Address',
+            entity: 'ADDRESS',
             entityId: address.id,
             newData: data as Record<string, unknown>,
         });
