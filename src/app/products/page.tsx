@@ -269,7 +269,7 @@ function ProductsContent() {
                                                             <Package className="w-12 h-12 text-gray-300" />
                                                         </div>
                                                     )}
-                                                    {product.compareAtPrice && (
+                                                    {product.compareAtPrice && Number(product.compareAtPrice) > 0 && (
                                                         <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
                                                             خصم
                                                         </span>

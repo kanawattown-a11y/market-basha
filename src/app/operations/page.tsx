@@ -323,20 +323,6 @@ export default function OperationsDashboard() {
                     )}
                 </div>
             </div>
-
-            {/* Activity Log Link */}
-            <Link href="/operations/activity" className="card p-4 flex items-center justify-between hover:shadow-lg transition-shadow group">
-                <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
-                        <Activity className="w-6 h-6" />
-                    </div>
-                    <div>
-                        <h3 className="font-bold text-secondary-800">سجل النشاطات</h3>
-                        <p className="text-sm text-gray-500">عرض جميع العمليات في النظام</p>
-                    </div>
-                </div>
-                <span className="text-primary">عرض →</span>
-            </Link>
         </div>
     );
 }

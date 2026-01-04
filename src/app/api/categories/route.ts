@@ -7,11 +7,57 @@ import { createAuditLog } from '@/lib/audit';
 // GET /api/categories - Get all categories
 export async function GET() {
     try {
+        // Get current user to filter by their service area
+        const user = await getSession();
+        let userServiceAreaId: string | null = null;
+
+        if (user?.id) {
+            const fullUser = await prisma.user.findUnique({
+                where: { id: user.id },
+                select: { serviceAreaId: true }
+            });
+            userServiceAreaId = fullUser?.serviceAreaId || null;
+        }
+
+        // Build where clause for categories
+        const categoryWhere: Record<string, unknown> = {
+            isActive: true,
+            parentId: null
+        };
+
+        // If user has a service area, only show categories with products in that area
+        if (userServiceAreaId) {
+            categoryWhere.products = {
+                some: {
+                    isActive: true,
+                    serviceAreas: {
+                        some: {
+                            serviceAreaId: userServiceAreaId
+                        }
+                    }
+                }
+            };
+        }
+
         const categories = await prisma.category.findMany({
-            where: { isActive: true, parentId: null },
+            where: categoryWhere,
             include: {
                 children: {
-                    where: { isActive: true },
+                    where: {
+                        isActive: true,
+                        ...(userServiceAreaId && {
+                            products: {
+                                some: {
+                                    isActive: true,
+                                    serviceAreas: {
+                                        some: {
+                                            serviceAreaId: userServiceAreaId
+                                        }
+                                    }
+                                }
+                            }
+                        })
+                    },
                     include: {
                         _count: { select: { products: true } },
                     },

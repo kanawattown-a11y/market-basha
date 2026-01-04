@@ -282,7 +282,8 @@ model Order {
   status          OrderStatus @default(PENDING)
   
   subtotal        Decimal     @db.Decimal(10, 2)
-  deliveryFee     Decimal     @db.Decimal(10, 2) @default(0)
+  deliveryFee     Decimal     @db.Decimal(10, 2) @default(0) // رسوم التوصيل من العميل
+  driverDeliveryCost Decimal? @db.Decimal(10, 2) // تكلفة التوصيل للسائق
   discount        Decimal     @db.Decimal(10, 2) @default(0)
   total           Decimal     @db.Decimal(10, 2)
   

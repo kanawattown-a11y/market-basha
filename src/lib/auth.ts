@@ -4,7 +4,12 @@ import bcrypt from 'bcryptjs';
 import { prisma } from './prisma';
 import { UserRole, UserStatus } from '@prisma/client';
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret-key');
+// Validate JWT_SECRET at module load time
+if (!process.env.JWT_SECRET) {
+    throw new Error('CRITICAL: JWT_SECRET environment variable is not set. Application cannot start without proper JWT configuration.');
+}
+
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '90d';
 
 export interface TokenPayload extends JWTPayload {

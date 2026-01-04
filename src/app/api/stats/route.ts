@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
                     createdAt: { gte: startOfMonth },
                     status: 'DELIVERED',
                 },
-                _sum: { total: true },
+                _sum: { total: true, subtotal: true, deliveryFee: true },
             }),
             // Today's revenue
             prisma.order.aggregate({
@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
                     createdAt: { gte: startOfToday },
                     status: 'DELIVERED',
                 },
-                _sum: { total: true },
+                _sum: { total: true, subtotal: true, deliveryFee: true },
             }),
             // Weekly revenue
             prisma.order.aggregate({
@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
                     createdAt: { gte: startOfWeek },
                     status: 'DELIVERED',
                 },
-                _sum: { total: true },
+                _sum: { total: true, subtotal: true, deliveryFee: true },
             }),
 
             // Driver stats
@@ -216,9 +216,16 @@ export async function GET(request: NextRequest) {
                 todayOrders,
                 weekOrders,
                 pendingOrders,
+                // Revenue breakdown
                 monthlyRevenue: Number(monthlyRevenue._sum.total || 0),
+                monthlyProductRevenue: Number(monthlyRevenue._sum.subtotal || 0),
+                monthlyDeliveryRevenue: Number(monthlyRevenue._sum.deliveryFee || 0),
                 weeklyRevenue: Number(weeklyRevenue._sum.total || 0),
+                weeklyProductRevenue: Number(weeklyRevenue._sum.subtotal || 0),
+                weeklyDeliveryRevenue: Number(weeklyRevenue._sum.deliveryFee || 0),
                 todayRevenue: Number(todayRevenue._sum.total || 0),
+                todayProductRevenue: Number(todayRevenue._sum.subtotal || 0),
+                todayDeliveryRevenue: Number(todayRevenue._sum.deliveryFee || 0),
                 openTickets,
             },
             drivers: {

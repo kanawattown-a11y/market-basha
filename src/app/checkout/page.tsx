@@ -115,6 +115,48 @@ export default function CheckoutPage() {
     const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const total = subtotal + Number(deliveryFee);
 
+    // Validate cart items against selected address service area
+    const validateCartForAddress = async () => {
+        if (!selectedAddressId || cartItems.length === 0) return;
+
+        const address = addresses.find(a => a.id === selectedAddressId);
+        if (!address) return;
+
+        // Check if all cart items are available in the selected area
+        const areaName = address.area;
+        const unavailableItems: string[] = [];
+
+        for (const item of cartItems) {
+            // Check if product has this service area
+            const productRes = await fetch(`/api/products?ids=${item.id}&limit=1`);
+            if (productRes.ok) {
+                const data = await productRes.json();
+                const product = data.products[0];
+
+                if (product && product.serviceAreas) {
+                    const hasArea = product.serviceAreas.some(
+                        (sa: any) => sa.serviceArea.name === areaName
+                    );
+
+                    if (!hasArea) {
+                        unavailableItems.push(item.name);
+                    }
+                }
+            }
+        }
+
+        if (unavailableItems.length > 0) {
+            setError(`بعض المنتجات غير متوفرة في منطقة "${address.area}": ${unavailableItems.join('، ')}`);
+        } else {
+            setError('');
+        }
+    };
+
+    // Validate when address changes
+    useEffect(() => {
+        validateCartForAddress();
+    }, [selectedAddressId]);
+
     const handleSubmit = async () => {
         if (!selectedAddressId) {
             setError('يرجى اختيار عنوان التوصيل');
@@ -147,10 +189,12 @@ export default function CheckoutPage() {
 
             if (!res.ok) {
                 setError(data.message || 'حدث خطأ في إنشاء الطلب');
+                setSubmitting(false);
+                // Don't clear cart on error - allow user to retry
                 return;
             }
 
-            // Clear cart using context
+            // Only clear cart after successful order creation
             clearCart();
 
             // Redirect to order tracking

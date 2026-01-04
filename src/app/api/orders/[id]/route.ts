@@ -3,6 +3,39 @@ import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { createAuditLog } from '@/lib/audit';
 import { notifyOrderStatusChange } from '@/lib/notifications';
+import { OrderStatus } from '@prisma/client';
+
+// Order state machine - valid transitions
+const VALID_TRANSITIONS: Record<string, string[]> = {
+    PENDING: ['CONFIRMED', 'CANCELLED'],
+    CONFIRMED: ['PREPARING', 'CANCELLED'],
+    PREPARING: ['READY', 'CANCELLED'],
+    READY: ['OUT_FOR_DELIVERY', 'CANCELLED'],
+    OUT_FOR_DELIVERY: ['DELIVERED', 'CANCELLED'],
+    DELIVERED: [], // Terminal state
+    CANCELLED: [], // Terminal state
+};
+
+function validateStateTransition(currentStatus: string, newStatus: string): { valid: boolean; message?: string } {
+    if (currentStatus === newStatus) {
+        return { valid: true };
+    }
+
+    const allowedTransitions = VALID_TRANSITIONS[currentStatus] || [];
+
+    if (!allowedTransitions.includes(newStatus)) {
+        const allowedText = allowedTransitions.length > 0
+            ? `الحالات المسموحة: ${allowedTransitions.join('، ')}`
+            : 'لا يمكن تغيير هذه الحالة';
+
+        return {
+            valid: false,
+            message: `لا يمكن تغيير حالة الطلب من "${currentStatus}" إلى "${newStatus}". ${allowedText}`
+        };
+    }
+
+    return { valid: true };
+}
 
 // GET /api/orders/[id] - Get a single order
 export async function GET(
@@ -41,7 +74,6 @@ export async function GET(
                 statusHistory: {
                     orderBy: { createdAt: 'desc' },
                 },
-                review: true,
             },
         });
 
@@ -94,7 +126,7 @@ export async function PUT(
 
         const { id } = await params;
         const body = await request.json();
-        const { status, driverId, internalNotes } = body;
+        const { status, driverId, internalNotes, driverDeliveryCost } = body;
 
         const oldOrder = await prisma.order.findUnique({
             where: { id },
@@ -111,6 +143,15 @@ export async function PUT(
         const updateData: Record<string, unknown> = {};
 
         if (status && status !== oldOrder.status) {
+            // Validate state transition
+            const validation = validateStateTransition(oldOrder.status, status);
+            if (!validation.valid) {
+                return NextResponse.json(
+                    { message: validation.message },
+                    { status: 400 }
+                );
+            }
+
             updateData.status = status;
 
             if (status === 'DELIVERED') {
@@ -124,6 +165,11 @@ export async function PUT(
 
         if (internalNotes !== undefined) {
             updateData.internalNotes = internalNotes;
+        }
+
+        // Allow admin/operations to set driver delivery cost
+        if (driverDeliveryCost !== undefined) {
+            updateData.driverDeliveryCost = driverDeliveryCost;
         }
 
         const order = await prisma.order.update({
@@ -155,17 +201,33 @@ export async function PUT(
                     data: { isAvailable: true },
                 });
             }
+
+            // When order is cancelled, free the driver if assigned
+            if (status === 'CANCELLED' && order.driverId) {
+                await prisma.user.update({
+                    where: { id: order.driverId },
+                    data: { isAvailable: true },
+                });
+            }
         }
 
         // When driver is assigned, set them as busy (not available)
         if (driverId && driverId !== oldOrder.driverId) {
             await notifyOrderStatusChange(id, 'DRIVER_ASSIGNED', order.customerId, driverId);
 
-            // Set driver as busy
+            // Set new driver as busy
             await prisma.user.update({
                 where: { id: driverId },
                 data: { isAvailable: false },
             });
+
+            // Free the old driver if there was one
+            if (oldOrder.driverId) {
+                await prisma.user.update({
+                    where: { id: oldOrder.driverId },
+                    data: { isAvailable: true },
+                });
+            }
         }
 
         // Audit log

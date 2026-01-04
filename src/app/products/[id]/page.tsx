@@ -128,7 +128,7 @@ export default function ProductDetailPage() {
         );
     }
 
-    const discount = product.compareAtPrice
+    const discount = product.compareAtPrice && Number(product.compareAtPrice) > 0
         ? Math.round((1 - Number(product.price) / Number(product.compareAtPrice)) * 100)
         : 0;
 
@@ -225,7 +225,7 @@ export default function ProductDetailPage() {
                                 {formatCurrency(Number(product.price))}
                             </span>
                             <span className="text-gray-500 text-lg">/{product.unit}</span>
-                            {product.compareAtPrice && (
+                            {product.compareAtPrice && Number(product.compareAtPrice) > 0 && (
                                 <span className="text-xl text-gray-400 line-through decoration-2">
                                     {formatCurrency(Number(product.compareAtPrice))}
                                 </span>

@@ -28,7 +28,7 @@ export default function ProductCard({
     product,
     onAddToCart
 }: ProductCardProps) {
-    const discount = product.compareAtPrice
+    const discount = product.compareAtPrice && Number(product.compareAtPrice) > 0
         ? Math.round(((Number(product.compareAtPrice) - Number(product.price)) / Number(product.compareAtPrice)) * 100)
         : 0;
 
@@ -109,7 +109,7 @@ export default function ProductCard({
 
                 <div className="flex items-center gap-2 mt-2">
                     <span className="text-lg font-bold text-primary">{formatCurrency(Number(product.price))}</span>
-                    {product.compareAtPrice && (
+                    {product.compareAtPrice && Number(product.compareAtPrice) > 0 && (
                         <span className="text-sm text-gray-400 line-through">
                             {formatCurrency(Number(product.compareAtPrice))}
                         </span>

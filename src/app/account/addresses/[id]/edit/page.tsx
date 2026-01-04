@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronLeft, MapPin, Save, AlertCircle, Loader2 } from 'lucide-react';
@@ -11,8 +11,8 @@ interface ServiceArea {
 }
 
 export default function EditAddressPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = use(params);
     const router = useRouter();
+    const [id, setId] = useState<string>('');
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
     const [error, setError] = useState('');
@@ -28,6 +28,15 @@ export default function EditAddressPage({ params }: { params: Promise<{ id: stri
     });
 
     useEffect(() => {
+        // Unwrap params promise
+        params.then((resolvedParams) => {
+            setId(resolvedParams.id);
+        });
+    }, [params]);
+
+    useEffect(() => {
+        if (!id) return; // Wait until id is set
+
         const fetchData = async () => {
             try {
                 // Fetch service areas
