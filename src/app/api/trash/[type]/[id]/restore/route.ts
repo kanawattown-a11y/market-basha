@@ -29,7 +29,7 @@ export async function POST(
                     where: { id },
                     data: { deletedAt: null },
                 });
-                entityName = 'User';
+                entityName = 'USER';
                 break;
 
             case 'products':
@@ -37,7 +37,7 @@ export async function POST(
                     where: { id },
                     data: { deletedAt: null },
                 });
-                entityName = 'Product';
+                entityName = 'PRODUCT';
                 break;
 
             case 'offers':
@@ -45,7 +45,7 @@ export async function POST(
                     where: { id },
                     data: { deletedAt: null },
                 });
-                entityName = 'Offer';
+                entityName = 'OFFER';
                 break;
 
             case 'categories':
@@ -53,7 +53,7 @@ export async function POST(
                     where: { id },
                     data: { deletedAt: null },
                 });
-                entityName = 'Category';
+                entityName = 'CATEGORY';
                 break;
 
             default:
@@ -67,7 +67,7 @@ export async function POST(
         await createAuditLog({
             userId: user.id,
             action: 'UPDATE',
-            entity: entityName as 'User' | 'Product' | 'Offer' | 'Category',
+            entity: entityName as 'USER' | 'PRODUCT' | 'OFFER' | 'CATEGORY',
             entityId: id,
             newData: { restored: true },
         });

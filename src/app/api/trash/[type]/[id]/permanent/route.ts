@@ -27,7 +27,7 @@ export async function DELETE(
         switch (type) {
             case 'users':
                 deleted = await prisma.user.delete({ where: { id } });
-                entityName = 'User';
+                entityName = 'USER';
                 break;
 
             case 'products':
@@ -45,12 +45,12 @@ export async function DELETE(
                     }
                 }
                 deleted = await prisma.product.delete({ where: { id } });
-                entityName = 'Product';
+                entityName = 'PRODUCT';
                 break;
 
             case 'offers':
                 deleted = await prisma.offer.delete({ where: { id } });
-                entityName = 'Offer';
+                entityName = 'OFFER';
                 break;
 
             case 'categories':
@@ -65,7 +65,7 @@ export async function DELETE(
                     );
                 }
                 deleted = await prisma.category.delete({ where: { id } });
-                entityName = 'Category';
+                entityName = 'CATEGORY';
                 break;
 
             default:
@@ -79,7 +79,7 @@ export async function DELETE(
         await createAuditLog({
             userId: user.id,
             action: 'DELETE',
-            entity: entityName as 'User' | 'Product' | 'Offer' | 'Category',
+            entity: entityName as 'USER' | 'PRODUCT' | 'OFFER' | 'CATEGORY',
             entityId: id,
             oldData: deleted as unknown as Record<string, unknown>,
         });
