@@ -192,20 +192,11 @@ export default function AdminOrderDetailPage() {
                             <div className="border-l-2 border-primary p-2 bg-gray-50 rounded">
                                 <div className="flex justify-between items-center text-sm mb-1">
                                     <span className="text-gray-600 font-medium">💰 تكلفة السائق:</span>
-                                    <input
-                                        type="number"
-                                        defaultValue={order.driverDeliveryCost || 0}
-                                        onBlur={(e) => {
-                                            const cost = parseFloat(e.target.value) || 0;
-                                            updateOrder({ driverDeliveryCost: cost });
-                                        }}
-                                        className="w-24 px-2 py-1 border rounded text-right"
-                                        min="0"
-                                        step="100"
-                                    />
-                                    <span className="text-xs text-gray-500">ل.س</span>
+                                    <span className="font-bold text-primary">
+                                        {formatCurrency(order.driverDeliveryCost || 0)}
+                                    </span>
                                 </div>
-                                <p className="text-xs text-gray-500">للتقارير المالية</p>
+                                <p className="text-xs text-gray-500">للتقارير المالية (الأدمن فقط يعدّلها)</p>
                             </div>
                             {order.discount > 0 && (
                                 <div className="flex justify-between text-sm text-green-600">
