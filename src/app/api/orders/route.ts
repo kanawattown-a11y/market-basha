@@ -218,6 +218,9 @@ export async function POST(request: NextRequest) {
             }
 
             const deliveryFee = Number(serviceArea.deliveryFee);
+            const defaultDriverCost = serviceArea.driverDeliveryCost
+                ? Number(serviceArea.driverDeliveryCost)
+                : null;
             const total = subtotal + deliveryFee;
 
             // Create order inside transaction
@@ -228,6 +231,7 @@ export async function POST(request: NextRequest) {
                     addressId,
                     subtotal,
                     deliveryFee,
+                    driverDeliveryCost: defaultDriverCost, // نسخ تلقائي من المنطقة
                     total,
                     notes,
                     items: {

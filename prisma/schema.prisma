@@ -133,11 +133,12 @@ model Address {
 }
 
 model ServiceArea {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  nameEn      String?
-  isActive    Boolean  @default(true)
-  deliveryFee Decimal  @default(0) @db.Decimal(10, 2)
+  id                  String   @id @default(cuid())
+  name                String   @unique
+  nameEn              String?
+  isActive            Boolean  @default(true)
+  deliveryFee         Decimal  @default(0) @db.Decimal(10, 2)
+  driverDeliveryCost  Decimal? @db.Decimal(10, 2) // التكلفة الافتراضية للسائق
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

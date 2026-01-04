@@ -146,6 +146,7 @@ export const serviceAreaSchema = z.object({
         .max(100, 'اسم المنطقة طويل جداً'),
     nameEn: z.string().optional(),
     deliveryFee: z.number().min(0, 'رسوم التوصيل لا يمكن أن تكون سالبة'),
+    driverDeliveryCost: z.number().min(0).optional().nullable(),
     isActive: z.boolean().default(true),
 });
 
