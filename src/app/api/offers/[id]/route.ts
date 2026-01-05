@@ -13,6 +13,15 @@ export async function GET(
 
         const offer = await prisma.offer.findUnique({
             where: { id },
+            include: {
+                products: {
+                    include: {
+                        product: {
+                            select: { id: true, name: true }
+                        }
+                    }
+                }
+            }
         });
 
         if (!offer) {
@@ -40,9 +49,33 @@ export async function PUT(
         const { id } = await params;
         const body = await request.json();
 
+        // Extract productIds if present
+        const { productIds, ...data } = body;
+
+        // Parse dates if they exist
+        if (data.startDate) data.startDate = new Date(data.startDate);
+        if (data.endDate) data.endDate = new Date(data.endDate);
+
+        // Update offer with product relations
         const offer = await prisma.offer.update({
             where: { id },
-            data: body,
+            data: {
+                ...data,
+                // Delete existing product relations and create new ones
+                products: {
+                    deleteMany: {}, // Remove all existing
+                    ...(productIds && productIds.length > 0 ? {
+                        create: productIds.map((productId: string) => ({
+                            productId,
+                        })),
+                    } : {}),
+                },
+            },
+            include: {
+                products: {
+                    include: { product: true },
+                },
+            },
         });
 
         // Audit log
@@ -87,7 +120,7 @@ export async function DELETE(
             entityId: id,
         });
 
-        return NextResponse.json({ message: 'تم نقل العرض إلى سلة المهملات' });
+        return NextResponse.json({ message: 'تم الحذف' });
     } catch (error) {
         console.error('Delete offer error:', error);
         return NextResponse.json({ message: 'حدث خطأ' }, { status: 500 });

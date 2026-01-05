@@ -142,6 +142,25 @@ export default function EditOfferPage() {
                             />
                         </div>
 
+                        <div className="md:col-span-2">
+                            <ImageUpload
+                                value={formData.image}
+                                onChange={(url) => setFormData({ ...formData, image: url })}
+                                label="صورة العرض"
+                            />
+                        </div>
+
+                        <div className="md:col-span-2">
+                            <MultiSelect
+                                items={products}
+                                selected={formData.productIds}
+                                onChange={(productIds) => setFormData({ ...formData, productIds })}
+                                label="منتجات محددة (اختياري)"
+                                placeholder="بحث عن منتج..."
+                                emptyMessage="لا يوجد منتجات"
+                            />
+                        </div>
+
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">نوع الخصم</label>
                             <select

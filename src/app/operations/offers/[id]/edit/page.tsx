@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronLeft, Save, AlertCircle } from 'lucide-react';
+import ImageUpload from '@/components/ImageUpload';
+import MultiSelect from '@/components/MultiSelect';
 
 export default function EditOfferPage() {
     const params = useParams();
@@ -12,9 +14,12 @@ export default function EditOfferPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
+    const [products, setProducts] = useState<{ id: string, name: string }[]>([]);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
+        image: null as string | null,
+        productIds: [] as string[],
         discountType: 'PERCENTAGE',
         discountValue: 10,
         minOrderAmount: 0,
@@ -32,6 +37,8 @@ export default function EditOfferPage() {
                     setFormData({
                         title: data.offer.title,
                         description: data.offer.description || '',
+                        image: data.offer.image || null,
+                        productIds: data.offer.products?.map((p: any) => p.productId) || [],
                         discountType: data.offer.discountType,
                         discountValue: Number(data.offer.discountValue),
                         minOrderAmount: Number(data.offer.minOrderAmount) || 0,
@@ -48,6 +55,22 @@ export default function EditOfferPage() {
         };
         fetchOffer();
     }, [id]);
+
+    // Fetch products
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const res = await fetch('/api/products?limit=1000');
+                if (res.ok) {
+                    const data = await res.json();
+                    setProducts(data.products.map((p: any) => ({ id: p.id, name: p.name })));
+                }
+            } catch (error) {
+                console.error('Error fetching products:', error);
+            }
+        };
+        fetchProducts();
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -98,6 +121,8 @@ export default function EditOfferPage() {
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="card p-6">
+                    <h3 className="font-bold text-secondary-800 mb-4">معلومات العرض</h3>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="md:col-span-2">
                             <label className="block text-sm font-medium text-gray-700 mb-1">عنوان العرض</label>
@@ -116,6 +141,25 @@ export default function EditOfferPage() {
                                 value={formData.description}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                 className="input min-h-20"
+                            />
+                        </div>
+
+                        <div className="md:col-span-2">
+                            <ImageUpload
+                                value={formData.image}
+                                onChange={(url) => setFormData({ ...formData, image: url })}
+                                label="صورة العرض"
+                            />
+                        </div>
+
+                        <div className="md:col-span-2">
+                            <MultiSelect
+                                items={products}
+                                selected={formData.productIds}
+                                onChange={(productIds) => setFormData({ ...formData, productIds })}
+                                label="منتجات محددة (اختياري)"
+                                placeholder="بحث عن منتج..."
+                                emptyMessage="لا يوجد منتجات"
                             />
                         </div>
 
@@ -139,6 +183,17 @@ export default function EditOfferPage() {
                                 onChange={(e) => setFormData({ ...formData, discountValue: parseInt(e.target.value) })}
                                 className="input"
                                 required
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">الحد الأدنى للطلب (ل.س)</label>
+                            <input
+                                type="number"
+                                value={formData.minOrderAmount}
+                                onChange={(e) => setFormData({ ...formData, minOrderAmount: parseInt(e.target.value) })}
+                                className="input"
+                                min="0"
                             />
                         </div>
 
