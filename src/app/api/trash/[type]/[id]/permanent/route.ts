@@ -4,7 +4,16 @@ import { getSession } from '@/lib/auth';
 import { createAuditLog } from '@/lib/audit';
 import { deleteFromS3 } from '@/lib/s3';
 
-// DELETE /api/trash/[type]/[id]/permanent - Permanently delete an item (Admin only)
+/**
+ * DELETE /api/trash/[type]/[id]/permanent
+ * 
+ * Permanently delete an item from trash (Admin only)
+ * 
+ * IMPORTANT: Deletes are NON-CASCADING
+ * - Only the target entity is deleted
+ * - All relationships are preserved
+ * - Related data remains intact
+ */
 export async function DELETE(
     request: NextRequest,
     { params }: { params: Promise<{ type: string; id: string }> }
@@ -26,9 +35,8 @@ export async function DELETE(
 
         switch (type) {
             case 'users':
-                // For users: Just delete the user, keep all relations intact
-                // Orders, reviews, tickets etc. will NOT be deleted
-                // Foreign keys will be set to NULL automatically (if schema allows)
+                // Delete user only - Orders, Reviews, Tickets remain intact
+                // References will become NULL in related tables
                 deleted = await prisma.user.delete({
                     where: { id }
                 });
@@ -36,16 +44,16 @@ export async function DELETE(
                 break;
 
             case 'products':
-                // Get product to delete images
+                // Delete product only - OrderItems remain, showing deleted product
+                // Clean up S3 images first
                 const product = await prisma.product.findUnique({ where: { id } });
                 if (product) {
-                    // Delete images from S3
                     if (product.image) {
-                        await deleteFromS3(product.image);
+                        await deleteFromS3(product.image).catch(() => { });
                     }
-                    if (product.images.length > 0) {
+                    if (product.images?.length > 0) {
                         for (const img of product.images) {
-                            await deleteFromS3(img);
+                            await deleteFromS3(img).catch(() => { });
                         }
                     }
                 }
@@ -54,21 +62,26 @@ export async function DELETE(
                 break;
 
             case 'offers':
+                // Delete offer only - OfferProducts cascade delete is OK
+                // Orders with this offer remain intact
                 deleted = await prisma.offer.delete({ where: { id } });
                 entityName = 'OFFER';
                 break;
 
             case 'categories':
-                // Check if category has products
-                const productsCount = await prisma.product.count({
+                // Delete category only - Products remain but need category reassignment
+                // Check if any products still reference this category
+                const activeProducts = await prisma.product.count({
                     where: { categoryId: id, deletedAt: null },
                 });
-                if (productsCount > 0) {
+
+                if (activeProducts > 0) {
                     return NextResponse.json(
-                        { message: `لا يمكن الحذف النهائي، التصنيف يحتوي على ${productsCount} منتج نشط` },
+                        { message: `لا يمكن الحذف النهائي، يوجد ${activeProducts} منتج نشط مرتبط بهذا التصنيف` },
                         { status: 400 }
                     );
                 }
+
                 deleted = await prisma.category.delete({ where: { id } });
                 entityName = 'CATEGORY';
                 break;
@@ -94,6 +107,15 @@ export async function DELETE(
         });
     } catch (error) {
         console.error('Permanent delete error:', error);
+
+        // Check for foreign key constraint errors
+        if (error instanceof Error && error.message.includes('foreign key constraint')) {
+            return NextResponse.json(
+                { message: 'لا يمكن الحذف لوجود بيانات مرتبطة' },
+                { status: 400 }
+            );
+        }
+
         return NextResponse.json(
             { message: 'حدث خطأ في الحذف النهائي' },
             { status: 500 }
