@@ -100,23 +100,22 @@ export default function LoginPage() {
                         )}
 
                         <div>
-                            <label className="label">رقم الهاتف أو البريد الإلكتروني</label>
-                            <p className="text-xs text-gray-500 mb-2">
-                                💡 للهاتف: أدخل الرقم بدون بريفكس (سيتم إضافة +963 تلقائياً)
-                            </p>
+                            <label htmlFor="identifier" className="block text-sm font-bold text-secondary-800 mb-2">
+                                رقم الهاتف أو البريد الإلكتروني
+                            </label>
                             <div className="relative">
                                 <input
+                                    id="identifier"
                                     type="text"
                                     value={formData.identifier}
                                     onChange={(e) => setFormData({ ...formData, identifier: e.target.value })}
-                                    className="input pl-28 text-left"
-                                    placeholder="912345678"
-                                    required
+                                    className="input pr-16"
+                                    placeholder="9XXXXXXXX"
                                     dir="ltr"
+                                    required
                                 />
-                                <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 text-gray-500 pointer-events-none">
-                                    <Phone className="w-5 h-5 text-gray-400" />
-                                    <span className="font-bold border-l border-gray-300 pl-2 pointer-events-none select-none">+963</span>
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium pointer-events-none select-none">
+                                    +963
                                 </div>
                             </div>
                         </div>
