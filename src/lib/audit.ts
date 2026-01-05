@@ -20,6 +20,7 @@ export type AuditEntity =
     | 'OFFER'
     | 'SERVICE_AREA'
     | 'ADDRESS'
+    | 'REVIEW'
     | 'SETTINGS';
 
 interface AuditLogData {
@@ -29,12 +30,10 @@ interface AuditLogData {
     entityId?: string;
     oldData?: Record<string, unknown>;
     newData?: Record<string, unknown>;
-    ipAddress?: string;
-    userAgent?: string;
+    metadata?: Record<string, unknown>;
 }
 
-// إنشاء سجل عمليات
-export async function createAuditLog(data: AuditLogData): Promise<void> {
+export async function createAuditLog(data: AuditLogData) {
     try {
         await prisma.auditLog.create({
             data: {
@@ -42,34 +41,43 @@ export async function createAuditLog(data: AuditLogData): Promise<void> {
                 action: data.action,
                 entity: data.entity,
                 entityId: data.entityId,
-                oldData: data.oldData as object | undefined,
-                newData: data.newData as object | undefined,
-                ipAddress: data.ipAddress,
-                userAgent: data.userAgent,
+                oldData: data.oldData as Record<string, unknown> | undefined,
+                newData: data.newData as Record<string, unknown> | undefined,
+                metadata: data.metadata as Record<string, unknown> | undefined,
             },
         });
     } catch (error) {
         console.error('Error creating audit log:', error);
+        // Don't throw - audit logging shouldn't break the main flow
     }
 }
 
-// الحصول على سجل العمليات مع فلترة
-export async function getAuditLogs(options: {
+export async function getAuditLogs({
+    userId,
+    entity,
+    entityId,
+    action,
+    startDate,
+    endDate,
+    page = 1,
+    limit = 50,
+}: {
     userId?: string;
     entity?: AuditEntity;
+    entityId?: string;
     action?: AuditAction;
     startDate?: Date;
     endDate?: Date;
     page?: number;
     limit?: number;
 }) {
-    const { userId, entity, action, startDate, endDate, page = 1, limit = 50 } = options;
-
     const where: Record<string, unknown> = {};
 
     if (userId) where.userId = userId;
     if (entity) where.entity = entity;
+    if (entityId) where.entityId = entityId;
     if (action) where.action = action;
+
     if (startDate || endDate) {
         where.createdAt = {};
         if (startDate) (where.createdAt as Record<string, unknown>).gte = startDate;
@@ -107,16 +115,12 @@ export async function getAuditLogs(options: {
     };
 }
 
-// تنظيف السجلات القديمة (أكثر من 90 يوم)
-export async function cleanupOldAuditLogs(daysToKeep: number = 90): Promise<number> {
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
-
-    const result = await prisma.auditLog.deleteMany({
-        where: {
-            createdAt: { lt: cutoffDate },
-        },
+export async function getRecentActivity(userId: string, limit = 10) {
+    const logs = await prisma.auditLog.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
     });
 
-    return result.count;
+    return logs;
 }
