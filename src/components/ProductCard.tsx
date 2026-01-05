@@ -16,7 +16,7 @@ export interface Product {
     stock: number;
     unit: string;
     category: { name: string };
-    isFeatured: boolean;
+    isFeatured?: boolean;
     description?: string | null;
     activeOffer?: {
         id: string;

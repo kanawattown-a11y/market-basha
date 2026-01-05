@@ -12,7 +12,9 @@ export async function GET(request: NextRequest) {
 
         const now = new Date();
 
-        const where: Record<string, unknown> = {};
+        const where: Record<string, unknown> = {
+            deletedAt: null, // Always exclude soft-deleted offers
+        };
 
         if (activeOnly) {
             where.isActive = true;

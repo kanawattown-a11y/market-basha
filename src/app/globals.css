@@ -313,7 +313,7 @@ body {
 
 /* Product Grid */
 .product-grid {
-  @apply grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4;
+  @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4;
 }
 
 /* Responsive utilities */
@@ -386,11 +386,6 @@ body {
   /* Modal */
   .modal-content {
     @apply mx-4 max-w-full;
-  }
-
-  /* Grid adjustments */
-  .product-grid {
-    @apply grid-cols-2 gap-2;
   }
 
   /* Form layouts */
@@ -490,4 +485,17 @@ body {
     --background: #111827;
     --foreground: #F9FAFB;
   } */
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari and Opera */
 }

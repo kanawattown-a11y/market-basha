@@ -68,23 +68,33 @@ export async function DELETE(
             return NextResponse.json({ message: 'غير مصرح' }, { status: 403 });
         }
 
+
         const { id } = await params;
 
-        // Check if category has products
-        const productsCount = await prisma.product.count({ where: { categoryId: id } });
-        if (productsCount > 0) {
-            return NextResponse.json(
-                { message: `لا يمكن حذف المتجر، يحتوي على ${productsCount} منتج` },
-                { status: 400 }
-            );
-        }
-
+        // Soft delete the category
         await prisma.category.update({
             where: { id },
             data: { deletedAt: new Date() },
         });
 
-        return NextResponse.json({ message: 'تم نقل المتجر إلى سلة المهملات' });
+        // Also soft delete all products in this category
+        await prisma.product.updateMany({
+            where: {
+                categoryId: id,
+                deletedAt: null // Only update products that aren't already deleted
+            },
+            data: { deletedAt: new Date() },
+        });
+
+        // Audit log
+        await createAuditLog({
+            userId: user.id,
+            action: 'DELETE',
+            entity: 'CATEGORY',
+            entityId: id,
+        });
+
+        return NextResponse.json({ message: 'تم نقل المتجر ومنتجاته إلى سلة المهملات' });
     } catch (error) {
         console.error('Delete category error:', error);
         return NextResponse.json({ message: 'حدث خطأ' }, { status: 500 });

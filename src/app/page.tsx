@@ -99,8 +99,17 @@ function HeroCarousel({ offers }: { offers: Offer[] }) {
                             key={offer.id}
                             className="min-w-full h-full relative"
                         >
-                            {/* Clean White Background */}
+                            {/* Clean White Background with Pattern */}
                             <div className="absolute inset-0 bg-white">
+                                {/* Pattern Overlay */}
+                                <div
+                                    className="absolute inset-0 opacity-5"
+                                    style={{
+                                        backgroundImage: 'url(/hero-pattern.png)',
+                                        backgroundSize: 'cover',
+                                        backgroundPosition: 'center'
+                                    }}
+                                />
                                 {offer.image && (
                                     <Image
                                         src={offer.image}
@@ -398,6 +407,7 @@ export default function HomePage() {
                         </section>
                     )}
 
+
                     {/* Featured Products */}
                     {featuredProducts.length > 0 && (
                         <section className="py-8">
@@ -408,14 +418,18 @@ export default function HomePage() {
                                     <ArrowLeft className="w-4 h-4" />
                                 </Link>
                             </div>
-                            <div className="product-grid">
-                                {featuredProducts.slice(0, 5).map(product => (
-                                    <ProductCard
-                                        key={product.id}
-                                        product={product}
-                                        onAddToCart={addToCart}
-                                    />
-                                ))}
+                            {/* Horizontal Scrollable Carousel */}
+                            <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
+                                <div className="flex gap-4 pb-4">
+                                    {featuredProducts.map(product => (
+                                        <div key={product.id} className="flex-shrink-0 w-[280px] sm:w-[320px]">
+                                            <ProductCard
+                                                product={product}
+                                                onAddToCart={addToCart}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </section>
                     )}

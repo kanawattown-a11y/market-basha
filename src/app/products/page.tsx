@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import ProductCard from '@/components/ProductCard';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
     Filter,
@@ -254,54 +255,11 @@ function ProductsContent() {
                             <>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                     {products.map((product) => (
-                                        <div key={product.id} className="card group">
-                                            <Link href={`/products/${product.id}`}>
-                                                <div className="aspect-square relative bg-gray-100 overflow-hidden">
-                                                    {product.image ? (
-                                                        <Image
-                                                            src={product.image}
-                                                            alt={product.name}
-                                                            fill
-                                                            className="object-cover group-hover:scale-105 transition-transform duration-300"
-                                                        />
-                                                    ) : (
-                                                        <div className="w-full h-full flex items-center justify-center">
-                                                            <Package className="w-12 h-12 text-gray-300" />
-                                                        </div>
-                                                    )}
-                                                    {product.compareAtPrice && Number(product.compareAtPrice) > 0 && (
-                                                        <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                                                            خصم
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </Link>
-
-                                            <div className="p-3">
-                                                <span className="text-xs text-primary">{product.category.name}</span>
-                                                <Link href={`/products/${product.id}`}>
-                                                    <h3 className="font-medium text-secondary-800 line-clamp-2 mt-1 hover:text-primary transition-colors">
-                                                        {product.name}
-                                                    </h3>
-                                                </Link>
-
-                                                <div className="flex items-center justify-between mt-3">
-                                                    <div>
-                                                        <span className="font-bold text-primary">
-                                                            {formatCurrency(Number(product.price))}
-                                                        </span>
-                                                        <span className="text-xs text-gray-400 mr-1">/{product.unit}</span>
-                                                    </div>
-                                                    <button
-                                                        onClick={() => addToCart(product)}
-                                                        disabled={product.stock === 0}
-                                                        className="w-9 h-9 bg-primary hover:bg-primary-600 text-secondary rounded-full flex items-center justify-center transition-colors disabled:opacity-50"
-                                                    >
-                                                        <ShoppingCart className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <ProductCard
+                                            key={product.id}
+                                            product={product}
+                                            onAddToCart={addToCart}
+                                        />
                                     ))}
                                 </div>
 
