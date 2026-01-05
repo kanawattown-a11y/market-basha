@@ -116,43 +116,51 @@ export default function LoginPage() {
                             </label>
 
                             <div className="relative">
+                                {/* Fixed +963 Prefix - Left Side */}
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none select-none text-gray-500 font-bold bg-gray-50 px-2 py-1 rounded-md border border-gray-200" style={{ zIndex: 10 }}>
+                                    <span className="text-sm" dir="ltr">+963</span>
+                                </div>
+
                                 <input
                                     id="identifier"
                                     type="text"
                                     value={formData.identifier}
                                     onChange={(e) => {
                                         const value = e.target.value;
-                                        setFormData({ ...formData, identifier: value });
+                                        // Only allow digits to be typed
+                                        if (/^\d*$/.test(value)) {
+                                            setFormData({ ...formData, identifier: value });
+                                        }
                                     }}
-                                    className={`input pr-16 ${formData.identifier ? 'pl-14' : ''
-                                        } ${formData.identifier
-                                            ? (isValidSyrianPhone(formData.identifier)
-                                                ? 'border-green-400 focus:border-green-500 focus:ring-green-500/20'
-                                                : 'border-red-400 focus:border-red-500 focus:ring-red-500/20')
-                                            : ''
+                                    className={`input text-center pl-24 pr-12 font-mono text-lg tracking-widest ${formData.identifier
+                                        ? isValidSyrianPhone(formData.identifier)
+                                            ? 'border-green-400 focus:border-green-500 focus:ring-green-500/20'
+                                            : 'border-red-400 focus:border-red-500 focus:ring-red-500/20'
+                                        : ''
                                         }`}
                                     placeholder="9XX XXX XXX"
                                     dir="ltr"
+                                    maxLength={9}
                                     required
                                 />
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium pointer-events-none select-none">
-                                    +963
-                                </div>
 
-                                {/* Validation Icon */}
-                                {formData.identifier && (
-                                    <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                                        {isValidSyrianPhone(formData.identifier) ? (
-                                            <div className="flex items-center gap-1.5 text-green-600">
-                                                <Check className="w-5 h-5" />
+                                {/* Validation Icon - Right Side */}
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                    {formData.identifier ? (
+                                        isValidSyrianPhone(formData.identifier) ? (
+                                            <div className="bg-green-100 p-1 rounded-full text-green-600 animate-in zoom-in duration-200">
+                                                <Check className="w-4 h-4" />
                                             </div>
                                         ) : (
-                                            <div className="flex items-center gap-1.5 text-red-600">
-                                                <X className="w-5 h-5" />
+                                            <div className="bg-red-100 p-1 rounded-full text-red-600 animate-in zoom-in duration-200">
+                                                <X className="w-4 h-4" />
                                             </div>
-                                        )}
-                                    </div>
-                                )}
+                                        )
+                                    ) : (
+                                        <div className="text-gray-400">
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             {/* Format Helper - Professional */}
@@ -193,13 +201,13 @@ export default function LoginPage() {
                                     type={showPassword ? 'text' : 'password'}
                                     value={formData.password}
                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                    className="input pr-12"
+                                    className="input pl-12"
                                     required
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
                                 >
                                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                 </button>
