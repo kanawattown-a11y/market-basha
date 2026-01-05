@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Bell, BellOff } from 'lucide-react';
+import { useToast } from '@/contexts/ToastContext';
 import { initializeApp, getApps } from 'firebase/app';
 import { getMessaging, getToken, onMessage, Messaging } from 'firebase/messaging';
 
@@ -61,6 +62,7 @@ function getFirebaseMessaging() {
 }
 
 export default function PushNotificationButton({ className = '' }: PushNotificationButtonProps) {
+    const toast = useToast();
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [isSupported, setIsSupported] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -142,7 +144,7 @@ export default function PushNotificationButton({ className = '' }: PushNotificat
                 // Web: Use Firebase JS SDK
                 const permission = await Notification.requestPermission();
                 if (permission !== 'granted') {
-                    alert('يرجى السماح بالإشعارات من إعدادات المتصفح');
+                    toast.warning('يرجى السماح بالإشعارات من إعدادات المتصفح');
                     return;
                 }
 
@@ -150,7 +152,7 @@ export default function PushNotificationButton({ className = '' }: PushNotificat
 
                 const fcmMessaging = getFirebaseMessaging();
                 if (!fcmMessaging) {
-                    alert('Firebase غير مُعد');
+                    toast.error('Firebase غير مُعد');
                     return;
                 }
 
@@ -159,7 +161,7 @@ export default function PushNotificationButton({ className = '' }: PushNotificat
                 });
 
                 if (!token) {
-                    alert('فشل الحصول على token');
+                    toast.error('فشل الحصول على token');
                     return;
                 }
 
@@ -181,7 +183,7 @@ export default function PushNotificationButton({ className = '' }: PushNotificat
             }
         } catch (error) {
             console.error('Error subscribing:', error);
-            alert('حدث خطأ في تفعيل الإشعارات');
+            toast.error('حدث خطأ في تفعيل الإشعارات');
         } finally {
             setLoading(false);
         }

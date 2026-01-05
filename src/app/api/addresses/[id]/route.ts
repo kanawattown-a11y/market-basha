@@ -105,6 +105,17 @@ export async function DELETE(
             return NextResponse.json({ message: 'العنوان غير موجود' }, { status: 404 });
         }
 
+        // Check if this is the only address
+        const addressCount = await prisma.address.count({
+            where: { userId: user.id },
+        });
+
+        if (addressCount === 1) {
+            return NextResponse.json({
+                message: 'لا يمكن حذف العنوان الوحيد. يجب أن يكون لديك عنوان واحد على الأقل.'
+            }, { status: 400 });
+        }
+
         await prisma.address.delete({ where: { id } });
 
         // Audit log

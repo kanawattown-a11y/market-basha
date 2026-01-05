@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { CartProvider } from '@/contexts/CartContext';
+import { ToastProvider } from '@/contexts/ToastContext';
 import NotificationAutoRegister from '@/components/NotificationAutoRegister';
 
 export const viewport: Viewport = {
@@ -37,10 +38,12 @@ export default async function RootLayout({
     return (
         <html lang="ar" dir="rtl" suppressHydrationWarning>
             <body className="font-cairo antialiased" suppressHydrationWarning>
-                <CartProvider>
-                    <NotificationAutoRegister user={user} />
-                    {children}
-                </CartProvider>
+                <ToastProvider>
+                    <CartProvider>
+                        <NotificationAutoRegister user={user} />
+                        {children}
+                    </CartProvider>
+                </ToastProvider>
             </body>
         </html>
     );

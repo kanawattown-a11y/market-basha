@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Trash2, RotateCcw, Trash, User, Package, Gift, Store, AlertTriangle } from 'lucide-react';
+import { Trash2, RotateCcw, Trash, User, Package, Gift, Store, AlertTriangle, X } from 'lucide-react';
+import { useToast } from '@/contexts/ToastContext';
 import { formatCurrency } from '@/lib/utils';
 import Image from 'next/image';
 
@@ -19,10 +20,13 @@ interface TrashData {
 }
 
 export default function TrashPage() {
+    const toast = useToast();
     const [data, setData] = useState<TrashData | null>(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'users' | 'products' | 'offers' | 'categories'>('products');
     const [actionLoading, setActionLoading] = useState<string | null>(null);
+    const [restoreConfirm, setRestoreConfirm] = useState<{ type: string; id: string } | null>(null);
+    const [deleteConfirm, setDeleteConfirm] = useState<{ type: string; id: string } | null>(null);
 
     const fetchTrash = async () => {
         setLoading(true);
@@ -44,8 +48,6 @@ export default function TrashPage() {
     }, []);
 
     const handleRestore = async (type: string, id: string) => {
-        if (!confirm('هل تريد استرجاع هذا العنصر؟')) return;
-
         setActionLoading(id);
         try {
             const res = await fetch(`/api/trash/${type}/${id}/restore`, {
@@ -54,21 +56,21 @@ export default function TrashPage() {
 
             if (res.ok) {
                 await fetchTrash();
+                toast.success('تم الاسترجاع بنجاح');
             } else {
                 const data = await res.json();
-                alert(data.message || 'حدث خطأ');
+                toast.error(data.message || 'حدث خطأ');
             }
         } catch (error) {
             console.error('Error restoring:', error);
-            alert('حدث خطأ في الاسترجاع');
+            toast.error('حدث خطأ في الاسترجاع');
         } finally {
             setActionLoading(null);
+            setRestoreConfirm(null);
         }
     };
 
     const handlePermanentDelete = async (type: string, id: string) => {
-        if (!confirm('⚠️ تحذير: هذا الإجراء لا يمكن التراجع عنه!\n\nهل أنت متأكد من الحذف النهائي؟')) return;
-
         setActionLoading(id);
         try {
             const res = await fetch(`/api/trash/${type}/${id}/permanent`, {
@@ -77,15 +79,17 @@ export default function TrashPage() {
 
             if (res.ok) {
                 await fetchTrash();
+                toast.success('تم الحذف النهائي');
             } else {
                 const data = await res.json();
-                alert(data.message || 'حدث خطأ');
+                toast.error(data.message || 'حدث خطأ');
             }
         } catch (error) {
             console.error('Error deleting:', error);
-            alert('حدث خطأ في الحذف');
+            toast.error('حدث خطأ في الحذف');
         } finally {
             setActionLoading(null);
+            setDeleteConfirm(null);
         }
     };
 
@@ -125,8 +129,8 @@ export default function TrashPage() {
                             key={tab.key}
                             onClick={() => setActiveTab(tab.key)}
                             className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors ${activeTab === tab.key
-                                    ? 'border-primary text-primary font-medium'
-                                    : 'border-transparent text-gray-600 hover:text-gray-800'
+                                ? 'border-primary text-primary font-medium'
+                                : 'border-transparent text-gray-600 hover:text-gray-800'
                                 }`}
                         >
                             <Icon className="w-5 h-5" />
@@ -211,7 +215,7 @@ export default function TrashPage() {
                                         <td>
                                             <div className="flex gap-2">
                                                 <button
-                                                    onClick={() => handleRestore(activeTab, item.id)}
+                                                    onClick={() => setRestoreConfirm({ type: activeTab, id: item.id })}
                                                     disabled={actionLoading === item.id}
                                                     className="btn btn-sm btn-outline text-green-600 hover:bg-green-50 border-green-300"
                                                 >
@@ -225,7 +229,7 @@ export default function TrashPage() {
                                                     )}
                                                 </button>
                                                 <button
-                                                    onClick={() => handlePermanentDelete(activeTab, item.id)}
+                                                    onClick={() => setDeleteConfirm({ type: activeTab, id: item.id })}
                                                     disabled={actionLoading === item.id}
                                                     className="btn btn-sm btn-outline text-red-600 hover:bg-red-50 border-red-300"
                                                 >
@@ -256,6 +260,69 @@ export default function TrashPage() {
                     <p>الحذف النهائي لا يمكن التراجع عنه. تأكد من أنك لا تحتاج لهذه العناصر قبل الحذف النهائي.</p>
                 </div>
             </div>
+
+            {/* Restore Confirmation Modal */}
+            {restoreConfirm && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-in fade-in">
+                    <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl animate-in zoom-in-95">
+                        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <RotateCcw className="w-6 h-6 text-green-600" />
+                        </div>
+                        <h3 className="text-xl font-bold text-center text-secondary-900 mb-2">
+                            استرجاع العنصر
+                        </h3>
+                        <p className="text-gray-600 text-center mb-6">
+                            هل تريد استرجاع هذا العنصر؟
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setRestoreConfirm(null)}
+                                className="btn btn-outline flex-1"
+                            >
+                                إلغاء
+                            </button>
+                            <button
+                                onClick={() => handleRestore(restoreConfirm.type, restoreConfirm.id)}
+                                className="btn bg-green-500 hover:bg-green-600 text-white flex-1"
+                            >
+                                استرجاع
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {deleteConfirm && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-in fade-in">
+                    <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl animate-in zoom-in-95">
+                        <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Trash className="w-6 h-6 text-red-600" />
+                        </div>
+                        <h3 className="text-xl font-bold text-center text-secondary-900 mb-2">
+                            ⚠️ حذف نهائي
+                        </h3>
+                        <p className="text-gray-600 text-center mb-6">
+                            هذا الإجراء لا يمكن التراجع عنه!<br />
+                            هل أنت متأكد من الحذف النهائي؟
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setDeleteConfirm(null)}
+                                className="btn btn-outline flex-1"
+                            >
+                                إلغاء
+                            </button>
+                            <button
+                                onClick={() => handlePermanentDelete(deleteConfirm.type, deleteConfirm.id)}
+                                className="btn bg-red-500 hover:bg-red-600 text-white flex-1"
+                            >
+                                حذف نهائياً
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

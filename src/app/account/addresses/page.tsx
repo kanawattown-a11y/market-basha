@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { MapPin, Plus, Edit, Trash2, Star, Check } from 'lucide-react';
+import { MapPin, Plus, Edit, Trash2, Star, Check, X } from 'lucide-react';
+import { useToast } from '@/contexts/ToastContext';
 
 interface Address {
     id: string;
@@ -18,6 +19,8 @@ interface Address {
 export default function AddressesPage() {
     const [addresses, setAddresses] = useState<Address[]>([]);
     const [loading, setLoading] = useState(true);
+    const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+    const toast = useToast();
 
     const fetchAddresses = async () => {
         try {
@@ -45,28 +48,29 @@ export default function AddressesPage() {
                 body: JSON.stringify({ isDefault: true }),
             });
             fetchAddresses();
+            toast.success('تم تعيين العنوان كافتراضي');
         } catch (error) {
             console.error('Error setting default address:', error);
+            toast.error('حدث خطأ في العملية');
         }
     };
 
     const deleteAddress = async (addressId: string) => {
-        if (!confirm('هل أنت متأكد من حذف هذا العنوان؟')) return;
-
         try {
             const res = await fetch(`/api/addresses/${addressId}`, { method: 'DELETE' });
 
             if (!res.ok) {
                 const data = await res.json();
-                alert(data.message || 'حدث خطأ في الحذف');
+                toast.error(data.message || 'حدث خطأ في الحذف');
                 return;
             }
 
-            // Success
             fetchAddresses();
+            toast.success('تم حذف العنوان بنجاح');
+            setDeleteConfirm(null);
         } catch (error) {
             console.error('Error deleting address:', error);
-            alert('حدث خطأ في الاتصال بالسيرفر');
+            toast.error('حدث خطأ في الاتصال بالسيرفر');
         }
     };
 
@@ -79,75 +83,108 @@ export default function AddressesPage() {
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-secondary-800">عناويني</h1>
-                <Link href="/account/addresses/new" className="btn btn-primary btn-sm">
-                    <Plus className="w-4 h-4" />
-                    إضافة عنوان
-                </Link>
-            </div>
-
-            {addresses.length === 0 ? (
-                <div className="card p-12 text-center">
-                    <MapPin className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                    <p className="text-gray-500 mb-4">لا توجد عناوين محفوظة</p>
-                    <Link href="/account/addresses/new" className="btn btn-primary">
-                        إضافة عنوان جديد
+        <>
+            <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <h1 className="text-2xl font-bold text-secondary-800">عناويني</h1>
+                    <Link href="/account/addresses/new" className="btn btn-primary btn-sm">
+                        <Plus className="w-4 h-4" />
+                        إضافة عنوان
                     </Link>
                 </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {addresses.map((address) => (
-                        <div key={address.id} className="card p-4 relative">
-                            {address.isDefault && (
-                                <span className="absolute top-3 left-3 bg-primary text-secondary text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                                    <Star className="w-3 h-3" />
-                                    افتراضي
-                                </span>
-                            )}
 
-                            <div className="flex items-start gap-3">
-                                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
-                                    <MapPin className="w-5 h-5 text-primary" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="font-bold text-secondary-800">{address.title}</h3>
-                                    <p className="text-gray-600 text-sm mt-1">{address.fullAddress}</p>
-                                    <p className="text-gray-400 text-sm">{address.area}</p>
-                                    {address.notes && (
-                                        <p className="text-gray-400 text-xs mt-1">ملاحظات: {address.notes}</p>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
-                                {!address.isDefault && (
-                                    <button
-                                        onClick={() => setDefault(address.id)}
-                                        className="btn btn-sm btn-outline flex-1"
-                                    >
-                                        <Check className="w-4 h-4" />
-                                        تعيين كافتراضي
-                                    </button>
+                {addresses.length === 0 ? (
+                    <div className="card p-12 text-center">
+                        <MapPin className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                        <p className="text-gray-500 mb-4">لا توجد عناوين محفوظة</p>
+                        <Link href="/account/addresses/new" className="btn btn-primary">
+                            إضافة عنوان جديد
+                        </Link>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {addresses.map((address) => (
+                            <div key={address.id} className="card p-4 relative">
+                                {address.isDefault && (
+                                    <span className="absolute top-3 left-3 bg-primary text-secondary text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                                        <Star className="w-3 h-3" />
+                                        افتراضي
+                                    </span>
                                 )}
-                                <Link
-                                    href={`/account/addresses/${address.id}/edit`}
-                                    className="btn btn-sm btn-ghost"
-                                >
-                                    <Edit className="w-4 h-4" />
-                                </Link>
-                                <button
-                                    onClick={() => deleteAddress(address.id)}
-                                    className="btn btn-sm btn-ghost text-red-500"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
+
+                                <div className="flex items-start gap-3">
+                                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
+                                        <MapPin className="w-5 h-5 text-primary" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="font-bold text-secondary-800">{address.title}</h3>
+                                        <p className="text-gray-600 text-sm mt-1">{address.fullAddress}</p>
+                                        <p className="text-gray-400 text-sm">{address.area}</p>
+                                        {address.notes && (
+                                            <p className="text-gray-400 text-xs mt-1">ملاحظات: {address.notes}</p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
+                                    {!address.isDefault && (
+                                        <button
+                                            onClick={() => setDefault(address.id)}
+                                            className="btn btn-sm btn-outline flex-1"
+                                        >
+                                            <Check className="w-4 h-4" />
+                                            تعيين كافتراضي
+                                        </button>
+                                    )}
+                                    <Link
+                                        href={`/account/addresses/${address.id}/edit`}
+                                        className="btn btn-sm btn-ghost"
+                                    >
+                                        <Edit className="w-4 h-4" />
+                                    </Link>
+                                    <button
+                                        onClick={() => setDeleteConfirm(address.id)}
+                                        className="btn btn-sm btn-ghost text-red-500"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </div>
                             </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Delete Confirmation Modal */}
+            {deleteConfirm && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-in fade-in">
+                    <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl animate-in zoom-in-95">
+                        <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Trash2 className="w-6 h-6 text-red-600" />
                         </div>
-                    ))}
+                        <h3 className="text-xl font-bold text-center text-secondary-900 mb-2">
+                            حذف العنوان
+                        </h3>
+                        <p className="text-gray-600 text-center mb-6">
+                            هل أنت متأكد من حذف هذا العنوان؟ لا يمكن التراجع عن هذا الإجراء.
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setDeleteConfirm(null)}
+                                className="btn btn-outline flex-1"
+                            >
+                                إلغاء
+                            </button>
+                            <button
+                                onClick={() => deleteAddress(deleteConfirm)}
+                                className="btn bg-red-500 hover:bg-red-600 text-white flex-1"
+                            >
+                                حذف
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
-        </div>
+        </>
     );
 }
