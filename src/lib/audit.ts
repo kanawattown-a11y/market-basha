@@ -43,13 +43,13 @@ export async function createAuditLog(data: AuditLogData) {
                 action: data.action,
                 entity: data.entity,
                 entityId: data.entityId,
-                oldData: data.oldData as Record<string, unknown> | undefined,
-                newData: data.newData as Record<string, unknown> | undefined,
+                oldData: data.oldData || undefined,
+                newData: data.newData || undefined,
                 metadata: {
                     ...data.metadata,
                     ipAddress: data.ipAddress,
                     userAgent: data.userAgent,
-                } as Record<string, unknown> | undefined,
+                } || undefined,
             },
         });
     } catch (error) {
