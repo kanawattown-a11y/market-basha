@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { createAuditLog } from '@/lib/audit';
 
 // GET /api/categories/[id] - Get single category
 export async function GET(
