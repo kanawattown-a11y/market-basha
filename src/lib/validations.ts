@@ -127,7 +127,7 @@ export const offerSchema = z.object({
         .max(200, 'عنوان العرض طويل جداً'),
     titleEn: z.string().optional(),
     description: z.string().max(1000).optional(),
-    discountType: z.enum(['percentage', 'fixed']),
+    discountType: z.enum(['PERCENTAGE', 'FIXED', 'percentage', 'fixed']),
     discountValue: z.number().positive('قيمة الخصم يجب أن تكون أكبر من صفر'),
     minOrderAmount: z.number().min(0).optional().nullable(),
     startDate: z.date(),

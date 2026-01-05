@@ -107,6 +107,15 @@ export async function DELETE(
 
         await prisma.address.delete({ where: { id } });
 
+        // Audit log
+        await createAuditLog({
+            userId: user.id,
+            action: 'DELETE',
+            entity: 'ADDRESS',
+            entityId: id,
+            oldData: existing as unknown as Record<string, unknown>,
+        });
+
         // If deleted was default, set another as default
         if (existing.isDefault) {
             const another = await prisma.address.findFirst({

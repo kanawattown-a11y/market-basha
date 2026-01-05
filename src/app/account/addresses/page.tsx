@@ -54,10 +54,19 @@ export default function AddressesPage() {
         if (!confirm('هل أنت متأكد من حذف هذا العنوان؟')) return;
 
         try {
-            await fetch(`/api/addresses/${addressId}`, { method: 'DELETE' });
+            const res = await fetch(`/api/addresses/${addressId}`, { method: 'DELETE' });
+
+            if (!res.ok) {
+                const data = await res.json();
+                alert(data.message || 'حدث خطأ في الحذف');
+                return;
+            }
+
+            // Success
             fetchAddresses();
         } catch (error) {
             console.error('Error deleting address:', error);
+            alert('حدث خطأ في الاتصال بالسيرفر');
         }
     };
 
