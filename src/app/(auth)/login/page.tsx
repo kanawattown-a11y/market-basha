@@ -124,7 +124,8 @@ export default function LoginPage() {
                                         const value = e.target.value;
                                         setFormData({ ...formData, identifier: value });
                                     }}
-                                    className={`input pr-16 ${formData.identifier
+                                    className={`input pr-16 ${formData.identifier ? 'pl-14' : ''
+                                        } ${formData.identifier
                                             ? (isValidSyrianPhone(formData.identifier)
                                                 ? 'border-green-400 focus:border-green-500 focus:ring-green-500/20'
                                                 : 'border-red-400 focus:border-red-500 focus:ring-red-500/20')
@@ -157,8 +158,8 @@ export default function LoginPage() {
                             {/* Format Helper - Professional */}
                             {formData.identifier && (
                                 <div className={`mt-2 p-3 rounded-xl text-sm ${isValidSyrianPhone(formData.identifier)
-                                        ? 'bg-green-50 border border-green-200'
-                                        : 'bg-amber-50 border border-amber-200'
+                                    ? 'bg-green-50 border border-green-200'
+                                    : 'bg-amber-50 border border-amber-200'
                                     }`}>
                                     {isValidSyrianPhone(formData.identifier) ? (
                                         <div className="flex items-start gap-2 text-green-700">

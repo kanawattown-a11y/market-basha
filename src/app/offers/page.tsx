@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Tag, Clock, ArrowLeft, Calendar, Gift } from 'lucide-react';
+import { Tag, Clock, ArrowLeft, Sparkles, Zap } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
@@ -56,16 +56,20 @@ export default function OffersPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary/5">
             <Header />
             <main className="container mx-auto px-4 py-12 max-w-7xl">
-                {/* Minimal Professional Header */}
-                <div className="mb-12">
-                    <h1 className="text-4xl md:text-5xl font-black text-secondary-900 mb-3">
+                {/* Elegant Header */}
+                <div className="mb-16 text-center">
+                    <div className="inline-flex items-center gap-2 bg-primary/10 backdrop-blur-sm px-6 py-2 rounded-full mb-6 border border-primary/20">
+                        <Sparkles className="w-5 h-5 text-primary animate-pulse" />
+                        <span className="text-primary font-bold text-sm">عروض حصرية</span>
+                    </div>
+                    <h1 className="text-5xl md:text-6xl font-black text-secondary-900 mb-4 bg-gradient-to-r from-secondary-900 via-secondary-800 to-secondary-900 bg-clip-text">
                         العروض الخاصة
                     </h1>
-                    <p className="text-gray-600 text-lg">
-                        اكتشف أفضل العروض والخصومات الحصرية
+                    <p className="text-gray-600 text-xl max-w-2xl mx-auto">
+                        اكتشف أفضل العروض والخصومات الحصرية لدينا
                     </p>
                 </div>
 
@@ -77,7 +81,6 @@ export default function OffersPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {offers.map((offer) => {
                             const daysLeft = getDaysLeft(offer.endDate);
-                            const isPercentage = offer.discountType.toLowerCase() === 'percentage';
 
                             return (
                                 <Link
@@ -85,9 +88,18 @@ export default function OffersPage() {
                                     href={`/offers/${offer.id}`}
                                     className="group block"
                                 >
-                                    <article className="bg-white rounded-3xl overflow-hidden border border-gray-100 hover:border-gray-200 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
-                                        {/* Image Section - Professional & Clean */}
-                                        <div className="relative aspect-[4/3] bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
+                                    <article className="relative bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
+                                        {/* Premium Gradient Border Effect */}
+                                        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary-400 to-yellow-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"
+                                            style={{ padding: '3px' }}>
+                                            <div className="absolute inset-[3px] bg-white rounded-3xl"></div>
+                                        </div>
+
+                                        {/* Image Section */}
+                                        <div className="relative aspect-[4/3] overflow-hidden">
+                                            {/* Animated Gradient Overlay */}
+                                            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-secondary-900/30 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
                                             {offer.image ? (
                                                 <Image
                                                     src={offer.image}
@@ -96,30 +108,41 @@ export default function OffersPage() {
                                                     className="object-cover transition-transform duration-700 group-hover:scale-110"
                                                 />
                                             ) : (
-                                                <div className="absolute inset-0 flex items-center justify-center">
-                                                    <Gift className="w-24 h-24 text-gray-200" />
+                                                <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-yellow-500/20 flex items-center justify-center">
+                                                    <Tag className="w-32 h-32 text-primary/40" />
                                                 </div>
                                             )}
 
-                                            {/* Minimalist Discount Badge - Top Right */}
-                                            <div className="absolute top-6 right-6">
-                                                <div className="bg-white/95 backdrop-blur-md px-5 py-3 rounded-2xl shadow-lg border border-gray-100">
-                                                    <div className="text-2xl font-black text-secondary-900 leading-none mb-1">
-                                                        {formatDiscount(offer.discountType, offer.discountValue)}
-                                                    </div>
-                                                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                        خصم
+                                            {/* Premium Discount Badge */}
+                                            <div className="absolute top-6 right-6 z-20">
+                                                <div className="relative">
+                                                    {/* Glow Effect */}
+                                                    <div className="absolute inset-0 bg-primary blur-xl opacity-60 animate-pulse"></div>
+
+                                                    {/* Badge */}
+                                                    <div className="relative bg-gradient-to-br from-primary via-yellow-400 to-yellow-600 px-6 py-4 rounded-2xl shadow-2xl transform group-hover:rotate-3 transition-transform duration-300">
+                                                        <div className="flex items-center gap-2">
+                                                            <Zap className="w-5 h-5 text-secondary-900 animate-pulse" />
+                                                            <div>
+                                                                <div className="text-3xl font-black text-secondary-900 leading-none">
+                                                                    {formatDiscount(offer.discountType, offer.discountValue)}
+                                                                </div>
+                                                                <div className="text-xs font-bold text-secondary-800 uppercase tracking-wider">
+                                                                    خصم
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            {/* Gradient Overlay - Subtle */}
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent"></div>
+                                            {/* Corner Accent */}
+                                            <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-primary/30 to-transparent transform -translate-x-16 translate-y-16 group-hover:translate-x-0 group-hover:translate-y-0 transition-transform duration-500"></div>
                                         </div>
 
                                         {/* Content Section */}
-                                        <div className="p-8">
-                                            <h3 className="text-2xl font-bold text-secondary-900 mb-3 line-clamp-2 leading-tight group-hover:text-primary transition-colors">
+                                        <div className="relative p-8 z-10">
+                                            <h3 className="text-2xl font-black text-secondary-900 mb-3 line-clamp-2 leading-tight group-hover:text-primary transition-colors duration-300">
                                                 {offer.title}
                                             </h3>
 
@@ -129,31 +152,41 @@ export default function OffersPage() {
                                                 </p>
                                             )}
 
-                                            {/* Time Indicator - Refined */}
-                                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 mb-6">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
-                                                        <Clock className="w-5 h-5 text-gray-700" />
-                                                    </div>
-                                                    <div>
-                                                        <div className="text-xs text-gray-500 font-medium mb-0.5">
-                                                            ينتهي خلال
+                                            {/* Timer - Premium Design */}
+                                            <div className="relative mb-6 overflow-hidden">
+                                                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-2xl"></div>
+                                                <div className="relative flex items-center justify-between p-5 bg-gradient-to-r from-primary/5 to-yellow-500/5 rounded-2xl border border-primary/20">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="relative">
+                                                            <div className="absolute inset-0 bg-primary/20 blur-md rounded-xl"></div>
+                                                            <div className="relative w-12 h-12 bg-gradient-to-br from-primary to-yellow-500 rounded-xl flex items-center justify-center shadow-lg">
+                                                                <Clock className="w-6 h-6 text-secondary-900" />
+                                                            </div>
                                                         </div>
-                                                        <div className="text-lg font-bold text-secondary-900">
-                                                            {daysLeft} {daysLeft === 1 ? 'يوم' : 'أيام'}
+                                                        <div>
+                                                            <div className="text-xs text-gray-500 font-semibold mb-1">
+                                                                ينتهي خلال
+                                                            </div>
+                                                            <div className="text-2xl font-black bg-gradient-to-r from-secondary-900 to-secondary-700 bg-clip-text text-transparent">
+                                                                {daysLeft} {daysLeft === 1 ? 'يوم' : 'أيام'}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            {/* CTA - Professional */}
-                                            <div className="flex items-center justify-between text-primary font-bold group/cta">
-                                                <span className="text-base">استكشف العرض</span>
-                                                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center group-hover/cta:bg-primary group-hover/cta:text-white transition-all">
-                                                    <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
+                                            {/* CTA Button - Premium */}
+                                            <div className="relative group/btn">
+                                                <div className="absolute inset-0 bg-gradient-to-r from-primary via-yellow-400 to-yellow-600 rounded-2xl blur opacity-50 group-hover/btn:opacity-75 transition-opacity"></div>
+                                                <div className="relative flex items-center justify-center gap-3 bg-gradient-to-r from-secondary-900 to-secondary-800 text-white px-8 py-4 rounded-2xl font-bold text-lg group-hover/btn:from-primary group-hover/btn:to-yellow-500 group-hover/btn:text-secondary-900 transition-all duration-300 shadow-xl">
+                                                    <span>استكشف العرض</span>
+                                                    <ArrowLeft className="w-5 h-5 transition-transform group-hover/btn:-translate-x-2 duration-300" />
                                                 </div>
                                             </div>
                                         </div>
+
+                                        {/* Decorative Elements */}
+                                        <div className="absolute top-1/2 right-0 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full transform translate-x-20 -translate-y-20 group-hover:translate-x-10 transition-transform duration-500"></div>
                                     </article>
                                 </Link>
                             );
@@ -162,10 +195,13 @@ export default function OffersPage() {
                 ) : (
                     <div className="py-32">
                         <div className="max-w-md mx-auto text-center">
-                            <div className="w-24 h-24 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-8">
-                                <Tag className="w-12 h-12 text-gray-300" />
+                            <div className="relative mb-8">
+                                <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full"></div>
+                                <div className="relative w-32 h-32 bg-gradient-to-br from-primary/20 to-yellow-500/10 rounded-3xl flex items-center justify-center mx-auto">
+                                    <Tag className="w-16 h-16 text-primary/60" />
+                                </div>
                             </div>
-                            <h3 className="text-3xl font-bold text-secondary-900 mb-4">
+                            <h3 className="text-4xl font-black text-secondary-900 mb-4">
                                 لا توجد عروض حالياً
                             </h3>
                             <p className="text-gray-600 text-lg mb-10">
@@ -173,7 +209,7 @@ export default function OffersPage() {
                             </p>
                             <Link
                                 href="/products"
-                                className="btn btn-primary btn-lg inline-flex items-center gap-3"
+                                className="inline-flex items-center gap-3 bg-gradient-to-r from-secondary-900 to-secondary-800 text-white px-10 py-5 rounded-2xl font-bold text-lg hover:from-primary hover:to-yellow-500 hover:text-secondary-900 transition-all duration-300 shadow-xl"
                             >
                                 <span>تصفح المنتجات</span>
                                 <ArrowLeft className="w-5 h-5" />

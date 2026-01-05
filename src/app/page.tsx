@@ -30,7 +30,8 @@ import {
     Filter,
     ChevronDown,
     LogOut,
-    Check
+    Check,
+    Sparkles
 } from 'lucide-react';
 import { formatCurrency, cn } from '@/lib/utils';
 import { useCart } from '@/contexts/CartContext';
@@ -98,90 +99,109 @@ function HeroCarousel({ offers }: { offers: Offer[] }) {
                             key={offer.id}
                             className="min-w-full h-full relative"
                         >
-                            {/* Clean Background - No Gradient */}
-                            <div className="absolute inset-0 bg-gray-50">
-                                {offer.image && (
+                            {/* Premium Background with Image */}
+                            <div className="absolute inset-0">
+                                {offer.image ? (
                                     <>
                                         <Image
                                             src={offer.image}
                                             alt={offer.title}
                                             fill
-                                            className="object-cover opacity-20"
+                                            className="object-cover"
+                                            priority
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/90 to-white/70"></div>
+                                        {/* Elegant Overlay */}
+                                        <div className="absolute inset-0 bg-gradient-to-r from-secondary-900/95 via-secondary-900/80 to-transparent"></div>
                                     </>
+                                ) : (
+                                    <div className="absolute inset-0 bg-gradient-to-br from-secondary-900 via-secondary-800 to-secondary-900"></div>
                                 )}
                             </div>
 
-                            {/* Clean Content - Minimal */}
+                            {/* Content */}
                             <div className="relative z-10 container mx-auto px-6 h-full flex items-center">
                                 <div className="max-w-2xl">
-                                    {/* Discount Badge - Refined */}
-                                    <div className="inline-flex items-center gap-2 bg-white border-2 border-secondary-900 px-6 py-3 rounded-2xl mb-6 shadow-lg">
-                                        <Tag className="w-5 h-5 text-secondary-900" />
-                                        <span className="text-2xl font-black text-secondary-900">
-                                            {offer.discountType.toLowerCase() === 'percentage'
-                                                ? `خصم ${offer.discountValue}%`
-                                                : `خصم ${offer.discountValue} ل.س`}
-                                        </span>
+                                    {/* Premium Discount Badge */}
+                                    <div className="inline-flex items-center gap-3 mb-6 group/badge">
+                                        <div className="relative">
+                                            {/* Glow Effect */}
+                                            <div className="absolute inset-0 bg-primary blur-xl opacity-60 animate-pulse"></div>
+
+                                            {/* Badge */}
+                                            <div className="relative bg-gradient-to-br from-primary via-yellow-400 to-yellow-600 px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-2">
+                                                <Tag className="w-5 h-5 text-secondary-900 animate-pulse" />
+                                                <span className="text-2xl font-black text-secondary-900">
+                                                    {offer.discountType.toLowerCase() === 'percentage'
+                                                        ? `خصم ${offer.discountValue}%`
+                                                        : `خصم ${offer.discountValue} ل.س`}
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    {/* Title - Professional */}
-                                    <h2 className="text-4xl md:text-6xl font-black text-secondary-900 mb-4 leading-tight">
+                                    {/* Title - Premium */}
+                                    <h2 className="text-4xl md:text-6xl font-black text-white mb-4 leading-tight drop-shadow-2xl">
                                         {offer.title}
                                     </h2>
 
-                                    {/* Description - Clean */}
+                                    {/* Description */}
                                     {offer.description && (
-                                        <p className="text-lg md:text-xl text-gray-700 mb-8 leading-relaxed max-w-xl">
+                                        <p className="text-white/90 text-lg md:text-xl mb-8 leading-relaxed max-w-xl drop-shadow-lg">
                                             {offer.description}
                                         </p>
                                     )}
 
-                                    {/* CTA - Simple */}
-                                    <Link
-                                        href={`/offers/${offer.id}`}
-                                        className="inline-flex items-center gap-3 bg-secondary-900 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-secondary-800 transition-all hover:scale-105 shadow-xl"
-                                    >
-                                        <span>استكشف العرض</span>
-                                        <ArrowLeft className="w-5 h-5" />
-                                    </Link>
+                                    {/* CTA Button - Matching offers page */}
+                                    <div className="relative inline-block group/btn">
+                                        <div className="absolute inset-0 bg-gradient-to-r from-primary via-yellow-400 to-yellow-600 rounded-2xl blur opacity-50 group-hover/btn:opacity-75 transition-opacity"></div>
+                                        <Link
+                                            href={`/offers/${offer.id}`}
+                                            className="relative flex items-center gap-3 bg-gradient-to-r from-primary to-yellow-500 text-secondary-900 px-8 py-4 rounded-2xl font-bold text-lg hover:from-yellow-400 hover:to-yellow-600 transition-all duration-300 shadow-xl"
+                                        >
+                                            <span>استكشف العرض</span>
+                                            <ArrowLeft className="w-5 h-5 transition-transform group-hover/btn:-translate-x-2 duration-300" />
+                                        </Link>
+                                    </div>
                                 </div>
                             </div>
+
+                            {/* Decorative Elements */}
+                            <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
+                            <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-yellow-500/5 rounded-full blur-3xl"></div>
                         </div>
                     ))}
                 </div>
             ) : (
                 <div className="w-full h-full relative overflow-hidden">
-                    <Image
-                        src="/hero-pattern.png"
-                        alt="Hero Background"
-                        fill
-                        className="object-cover"
-                        priority
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent"></div>
+                    {/* Default Hero - Premium */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-secondary-900 via-secondary-800 to-secondary-900"></div>
+
                     <div className="absolute inset-0 flex items-center justify-between text-right z-10 p-8 md:p-16 container mx-auto">
-                        <div className="animate-float max-w-2xl">
-                            <span className="inline-block bg-primary text-secondary-900 px-4 py-1.5 rounded-full text-sm font-bold mb-6 shadow-lg">
-                                تسوق أذكى، مش أصعب
-                            </span>
-                            <h1 className="text-5xl md:text-7xl font-black text-white mb-6 leading-tight drop-shadow-lg">
+                        <div className="max-w-2xl">
+                            <div className="inline-flex items-center gap-2 bg-primary/20 backdrop-blur-sm px-6 py-2 rounded-full mb-6 border border-primary/30">
+                                <Sparkles className="w-5 h-5 text-primary animate-pulse" />
+                                <span className="text-primary font-bold text-sm">تسوق أذكى، مش أصعب</span>
+                            </div>
+                            <h1 className="text-5xl md:text-7xl font-black text-white mb-6 leading-tight drop-shadow-2xl">
                                 كل طلبات البيت <span className="text-primary">واصلة لعندك</span>
                             </h1>
-                            <p className="text-gray-200 text-lg md:text-xl mb-8 max-w-lg leading-relaxed">
+                            <p className="text-white/80 text-lg md:text-xl mb-8 max-w-lg leading-relaxed drop-shadow-lg">
                                 أفضل المنتجات بأفضل الأسعار، توصيل سريع ودفع عند الاستلام.
                             </p>
-                            <Link href="/products" className="btn btn-primary btn-lg shadow-xl hover:scale-105 transition-transform">
-                                تسوق الآن
-                                <ArrowLeft className="w-5 h-5 mr-2" />
+                            <Link href="/products" className="inline-flex items-center gap-3 bg-gradient-to-r from-primary to-yellow-500 text-secondary-900 px-8 py-4 rounded-2xl font-bold text-lg hover:from-yellow-400 hover:to-yellow-600 transition-all duration-300 shadow-xl">
+                                <span>تسوق الآن</span>
+                                <ArrowLeft className="w-5 h-5" />
                             </Link>
                         </div>
-                        {/* Hero Logo - Visible on all screens, small on mobile */}
-                        <div className="w-24 h-24 lg:w-96 lg:h-96 relative animate-float delay-100 opacity-90 flex-shrink-0 ml-4">
+                        {/* Logo */}
+                        <div className="hidden lg:block w-80 h-80 relative opacity-90">
                             <Image src="/logo.svg" alt="Market Basha" fill className="object-contain drop-shadow-2xl" />
                         </div>
                     </div>
+
+                    {/* Decorative Elements */}
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
+                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-yellow-500/5 rounded-full blur-3xl"></div>
                 </div>
             )}
 
@@ -189,16 +209,30 @@ function HeroCarousel({ offers }: { offers: Offer[] }) {
                 <>
                     <button
                         onClick={prevSlide}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-md border border-white/30 rounded-full flex items-center justify-center text-white hover:bg-white hover:text-secondary-900 transition-all z-30"
+                        className="absolute left-4 top-1/2 -translate-y-1/2 w-14 h-14 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl flex items-center justify-center text-white hover:bg-primary hover:text-secondary-900 hover:border-primary transition-all z-30 shadow-xl"
                     >
-                        <ChevronLeft className="w-6 h-6" />
+                        <ChevronLeft className="w-7 h-7" />
                     </button>
                     <button
                         onClick={nextSlide}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-md border border-white/30 rounded-full flex items-center justify-center text-white hover:bg-white hover:text-secondary-900 transition-all z-30"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 w-14 h-14 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl flex items-center justify-center text-white hover:bg-primary hover:text-secondary-900 hover:border-primary transition-all z-30 shadow-xl"
                     >
-                        <ChevronRight className="w-6 h-6" />
+                        <ChevronRight className="w-7 h-7" />
                     </button>
+
+                    {/* Dots Indicator */}
+                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-30">
+                        {offers.map((_, index) => (
+                            <button
+                                key={index}
+                                onClick={() => setCurrentSlide(index)}
+                                className={`h-2 rounded-full transition-all duration-300 ${index === currentSlide
+                                    ? 'w-8 bg-primary'
+                                    : 'w-2 bg-white/40 hover:bg-white/60'
+                                    }`}
+                            />
+                        ))}
+                    </div>
                 </>
             )}
         </div>
