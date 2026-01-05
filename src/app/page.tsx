@@ -283,7 +283,7 @@ function FeaturesSection() {
     return (
         <section className="py-8">
             <div className="container mx-auto px-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {features.map((feature, index) => (
                         <div key={index} className="card p-4 text-center">
                             <div className="w-12 h-12 mx-auto mb-3 bg-primary/10 rounded-xl flex items-center justify-center">

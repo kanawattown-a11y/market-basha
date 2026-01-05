@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { ShoppingCart, User, Search, Menu, X, LogOut, Package, MapPin, Settings, LayoutDashboard, Truck, Ticket, Heart, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCart } from '@/contexts/CartContext';
+import CartSidebar from './CartSidebar';
 
 interface HeaderProps {
     className?: string;
@@ -15,9 +16,10 @@ export default function Header({ className, onCartClick }: HeaderProps) {
     const [user, setUser] = useState<{ name: string; role: string } | null>(null);
     const [showMobileMenu, setShowMobileMenu] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
+    const [showCart, setShowCart] = useState(false);
 
     // Use cart context for real-time updates
-    const { cartCount } = useCart();
+    const { cartCount, items, updateQuantity, removeFromCart } = useCart();
 
     useEffect(() => {
         // Fetch user session
@@ -83,6 +85,14 @@ export default function Header({ className, onCartClick }: HeaderProps) {
 
     const menuItems = getMenuItems();
 
+    const handleCartOpen = () => {
+        if (onCartClick) {
+            onCartClick();
+        } else {
+            setShowCart(true);
+        }
+    };
+
     return (
         <header className={cn("bg-white border-b border-gray-200 sticky top-0 z-40", className)}>
             <div className="container mx-auto px-4 py-3">
@@ -131,25 +141,14 @@ export default function Header({ className, onCartClick }: HeaderProps) {
 
                         {/* Cart */}
                         {(!user || user.role === 'USER') && (
-                            onCartClick ? (
-                                <button onClick={onCartClick} className="relative p-2.5 hover:bg-gray-100 rounded-xl transition-all group">
-                                    <ShoppingCart className="w-6 h-6 text-gray-600 group-hover:text-primary transition-colors" />
-                                    {cartCount > 0 && (
-                                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-secondary-900 text-xs font-bold rounded-full flex items-center justify-center shadow-sm animate-bounce-in">
-                                            {cartCount > 9 ? '9+' : cartCount}
-                                        </span>
-                                    )}
-                                </button>
-                            ) : (
-                                <Link href="/checkout" className="relative p-2.5 hover:bg-gray-100 rounded-xl transition-all group">
-                                    <ShoppingCart className="w-6 h-6 text-gray-600 group-hover:text-primary transition-colors" />
-                                    {cartCount > 0 && (
-                                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-secondary-900 text-xs font-bold rounded-full flex items-center justify-center shadow-sm animate-bounce-in">
-                                            {cartCount > 9 ? '9+' : cartCount}
-                                        </span>
-                                    )}
-                                </Link>
-                            )
+                            <button onClick={handleCartOpen} className="relative p-2.5 hover:bg-gray-100 rounded-xl transition-all group">
+                                <ShoppingCart className="w-6 h-6 text-gray-600 group-hover:text-primary transition-colors" />
+                                {cartCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-secondary-900 text-xs font-bold rounded-full flex items-center justify-center shadow-sm animate-bounce-in">
+                                        {cartCount > 9 ? '9+' : cartCount}
+                                    </span>
+                                )}
+                            </button>
                         )}
 
                         {/* User */}
@@ -257,6 +256,14 @@ export default function Header({ className, onCartClick }: HeaderProps) {
                     </nav>
                 </div>
             )}
+            {/* Global Cart Sidebar */}
+            <CartSidebar
+                items={items}
+                isOpen={showCart}
+                onClose={() => setShowCart(false)}
+                onUpdateQuantity={updateQuantity}
+                onRemove={removeFromCart}
+            />
         </header>
     );
 }

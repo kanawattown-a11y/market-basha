@@ -11,6 +11,7 @@ import {
     Percent
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { useToast } from '@/contexts/ToastContext';
 
 interface Offer {
     id: string;
@@ -28,6 +29,7 @@ interface Offer {
 export default function AdminOffersPage() {
     const [offers, setOffers] = useState<Offer[]>([]);
     const [loading, setLoading] = useState(true);
+    const toast = useToast();
 
     const fetchOffers = async () => {
         try {
@@ -51,10 +53,18 @@ export default function AdminOffersPage() {
         if (!confirm('هل أنت متأكد من الحذف؟')) return;
 
         try {
-            await fetch(`/api/offers/${id}`, { method: 'DELETE' });
-            fetchOffers();
+            const res = await fetch(`/api/offers/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+
+            if (res.ok) {
+                toast.success('تم حذف العرض بنجاح');
+                fetchOffers();
+            } else {
+                toast.error(data.message || 'حدث خطأ أثناء الحذف');
+            }
         } catch (error) {
             console.error('Error deleting offer:', error);
+            toast.error('حدث خطأ أثناء الحذف');
         }
     };
 

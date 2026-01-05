@@ -156,11 +156,18 @@ export async function PUT(
                     { status: 403 }
                 );
             }
-            // Drivers can ONLY mark orders as DELIVERED (cannot cancel)
-            if (status && status !== 'DELIVERED') {
+            // Drivers can start delivery (OUT_FOR_DELIVERY) and mark as delivered (DELIVERED)
+            if (status && status !== 'OUT_FOR_DELIVERY' && status !== 'DELIVERED') {
                 return NextResponse.json(
-                    { message: 'يمكنك فقط تأكيد توصيل الطلب' },
+                    { message: 'يمكنك فقط بدء التوصيل أو تأكيد التوصيل' },
                     { status: 403 }
+                );
+            }
+            // Driver can only start delivery from READY status
+            if (status === 'OUT_FOR_DELIVERY' && oldOrder.status !== 'READY') {
+                return NextResponse.json(
+                    { message: 'الطلب ليس جاهزاً للتوصيل بعد' },
+                    { status: 400 }
                 );
             }
             // Driver can only deliver from OUT_FOR_DELIVERY status

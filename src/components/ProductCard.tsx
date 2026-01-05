@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, ShoppingCart, Package } from 'lucide-react';
+import { Heart, ShoppingCart, Package, Plus, Minus } from 'lucide-react';
 import { formatCurrency, cn } from '@/lib/utils';
+import { useCart } from '@/contexts/CartContext';
 
 export interface Product {
     id: string;
@@ -28,7 +29,7 @@ export interface Product {
 
 interface ProductCardProps {
     product: Product;
-    onAddToCart: (product: Product) => void;
+    onAddToCart: (product: Product, quantity?: number) => void;
 }
 
 export default function ProductCard({
@@ -50,6 +51,13 @@ export default function ProductCard({
 
     const [isFav, setIsFav] = useState(false);
 
+    // Get cart context to sync quantity
+    const { items, updateQuantity, addToCart } = useCart();
+
+    // Find current product in cart
+    const cartItem = items.find(item => item.id === product.id);
+    const quantity = cartItem?.quantity || 1;
+
     useEffect(() => {
         const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
         setIsFav(favs.includes(product.id));
@@ -70,6 +78,57 @@ export default function ProductCard({
 
         // Dispatch event for other components
         window.dispatchEvent(new Event('storage'));
+    };
+
+    const handleAddToCart = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (cartItem) {
+            // Product already in cart, update quantity
+            updateQuantity(product.id, quantity);
+        } else {
+            // Add new product to cart with quantity 1
+            addToCart({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                image: product.image,
+                stock: product.stock,
+                activeOffer: product.activeOffer,
+            }, 1);
+        }
+    };
+
+    const incrementQuantity = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (cartItem) {
+            // Update existing cart item
+            if (quantity < product.stock) {
+                updateQuantity(product.id, quantity + 1);
+            }
+        } else {
+            // Add to cart with quantity 1
+            addToCart({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                image: product.image,
+                stock: product.stock,
+                activeOffer: product.activeOffer,
+            }, 1);
+        }
+    };
+
+    const decrementQuantity = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (cartItem && quantity > 1) {
+            updateQuantity(product.id, quantity - 1);
+        }
     };
 
     return (
@@ -139,17 +198,41 @@ export default function ProductCard({
 
                 <span className="text-xs text-gray-500 block mt-1">/ {product.unit}</span>
 
-                <button
-                    onClick={(e) => {
-                        e.preventDefault();
-                        onAddToCart(product);
-                    }}
-                    disabled={product.stock <= 0}
-                    className="w-full btn btn-primary btn-sm mt-4 font-bold shadow-sm"
-                >
-                    <ShoppingCart className="w-4 h-4" />
-                    أضف للسلة
-                </button>
+                <div className="flex items-center gap-2 mt-4">
+                    {/* Quantity Counter */}
+                    <div className="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden h-10 bg-white">
+                        <button
+                            onClick={decrementQuantity}
+                            disabled={quantity <= 1 || product.stock <= 0}
+                            className="w-10 h-full flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        >
+                            <Minus className="w-4 h-4" />
+                        </button>
+                        <div className="px-4 font-bold text-secondary-900 min-w-[3rem] text-center">
+                            {quantity}
+                        </div>
+                        <button
+                            onClick={incrementQuantity}
+                            disabled={quantity >= product.stock || product.stock <= 0}
+                            className="w-10 h-full flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        >
+                            <Plus className="w-4 h-4" />
+                        </button>
+                    </div>
+
+                    {/* Add to Cart Button */}
+                    <button
+                        onClick={handleAddToCart}
+                        disabled={product.stock <= 0}
+                        className={cn(
+                            "flex-1 btn btn-sm h-10 font-bold shadow-sm disabled:opacity-50 disabled:cursor-not-allowed",
+                            cartItem ? "btn-secondary" : "btn-primary"
+                        )}
+                    >
+                        <ShoppingCart className="w-4 h-4" />
+                        {cartItem ? 'في السلة' : 'أضف'}
+                    </button>
+                </div>
             </div>
         </div>
     );

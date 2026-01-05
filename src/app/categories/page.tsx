@@ -44,7 +44,7 @@ export default function CategoriesPage() {
                 <h1 className="text-3xl font-bold text-secondary-800 mb-8">تسوق حسب المتجر</h1>
 
                 {loading ? (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                         {[1, 2, 3, 4, 5, 6].map((i) => (
                             <div key={i} className="card h-48 animate-pulse bg-gray-200"></div>
                         ))}

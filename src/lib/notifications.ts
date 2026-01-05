@@ -131,11 +131,45 @@ export async function notifyOrderStatusChange(
     if (driverId && status === 'CANCELLED') {
         await createAndSendNotification(
             driverId,
-            'ORDER_CANCELLED',
+            'ORDER_STATUS',
             'تم إلغاء الطلب',
             'تم إلغاء الطلب المُعيّن لك',
             { orderId }
         );
+    }
+
+    // إشعار العمليات عند توصيل الطلب بنجاح
+    if (status === 'DELIVERED') {
+        // جلب معلومات الطلب لإظهار الرقم
+        const order = await prisma.order.findUnique({
+            where: { id: orderId },
+            select: { orderNumber: true },
+        });
+
+        // إرسال لجميع Operations عبر Topic
+        await sendPushToRole('OPERATIONS', {
+            title: 'تم التوصيل ✅',
+            body: `تم توصيل الطلب رقم ${order?.orderNumber || orderId} بنجاح`,
+            data: { orderId },
+            clickAction: `/operations/orders/${orderId}`,
+        });
+
+        // حفظ في قاعدة البيانات لكل مستخدم عمليات
+        const operationsUsers = await prisma.user.findMany({
+            where: { role: 'OPERATIONS', status: 'APPROVED' },
+        });
+
+        for (const user of operationsUsers) {
+            await prisma.notification.create({
+                data: {
+                    userId: user.id,
+                    type: 'ORDER_STATUS',
+                    title: 'تم التوصيل',
+                    message: `تم توصيل الطلب رقم ${order?.orderNumber || orderId} بنجاح`,
+                    data: { orderId },
+                },
+            });
+        }
     }
 }
 
