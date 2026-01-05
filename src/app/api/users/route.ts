@@ -24,7 +24,9 @@ export async function GET(request: NextRequest) {
         const isAvailable = searchParams.get('isAvailable');
         const search = searchParams.get('search');
 
-        const where: Record<string, unknown> = {};
+        const where: Record<string, unknown> = {
+            deletedAt: null, // CRITICAL: Exclude soft-deleted users
+        };
 
         if (role) where.role = role;
         if (status) where.status = status;
