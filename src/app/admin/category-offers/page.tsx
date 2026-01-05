@@ -349,14 +349,65 @@ export default function AdminCategoryOffersPage() {
                                 </div>
                             </div>
 
+                            {/* Image Upload */}
                             <div>
-                                <label className="label">رابط الصورة</label>
-                                <input
-                                    type="text"
-                                    className="input"
-                                    value={formData.image}
-                                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                                />
+                                <label className="label">صورة العرض</label>
+                                <div className="space-y-2">
+                                    {formData.image && (
+                                        <div className="relative w-full h-40 bg-gray-100 rounded-xl overflow-hidden">
+                                            <Image src={formData.image} alt="Preview" fill className="object-cover" />
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, image: '' })}
+                                                className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    )}
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={async (e) => {
+                                            const file = e.target.files?.[0];
+                                            if (!file) return;
+
+                                            // Validate file size (5MB max)
+                                            if (file.size > 5 * 1024 * 1024) {
+                                                showToast('حجم الصورة يجب أن يكون أقل من 5MB', 'error');
+                                                return;
+                                            }
+
+                                            // Upload to S3
+                                            const formData = new FormData();
+                                            formData.append('file', file);
+                                            formData.append('folder', 'offers');
+
+                                            try {
+                                                showToast('جاري رفع الصورة...', 'info');
+                                                const res = await fetch('/api/upload', {
+                                                    method: 'POST',
+                                                    body: formData,
+                                                });
+
+                                                if (res.ok) {
+                                                    const data = await res.json();
+                                                    setFormData(prev => ({ ...prev, image: data.url }));
+                                                    showToast('تم رفع الصورة بنجاح', 'success');
+                                                } else {
+                                                    showToast('فشل رفع الصورة', 'error');
+                                                }
+                                            } catch (error) {
+                                                console.error('Upload error:', error);
+                                                showToast('حدث خطأ في رفع الصورة', 'error');
+                                            }
+                                        }}
+                                        className="input"
+                                    />
+                                    <p className="text-xs text-gray-500">
+                                        الحد الأقصى: 5MB | الأنواع المدعومة: JPG, PNG, WebP, GIF
+                                    </p>
+                                </div>
                             </div>
 
                             {/* Category Selection */}
@@ -368,8 +419,8 @@ export default function AdminCategoryOffersPage() {
                                             <label
                                                 key={category.id}
                                                 className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${formData.categoryIds.includes(category.id)
-                                                        ? 'bg-primary/20 border-2 border-primary'
-                                                        : 'bg-gray-50 hover:bg-gray-100'
+                                                    ? 'bg-primary/20 border-2 border-primary'
+                                                    : 'bg-gray-50 hover:bg-gray-100'
                                                     }`}
                                             >
                                                 <input
