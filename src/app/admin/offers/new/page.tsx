@@ -1,17 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronLeft, Save, AlertCircle } from 'lucide-react';
+import ImageUpload from '@/components/ImageUpload';
+import MultiSelect from '@/components/MultiSelect';
 
 export default function NewOfferPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [products, setProducts] = useState<{ id: string, name: string }[]>([]);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
+        image: null as string | null,
+        productIds: [] as string[],
         discountType: 'percentage',
         discountValue: 10,
         minOrderAmount: 0,
@@ -51,6 +56,22 @@ export default function NewOfferPage() {
         }
     };
 
+    // Fetch products
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const res = await fetch('/api/products?limit=1000');
+                if (res.ok) {
+                    const data = await res.json();
+                    setProducts(data.products.map((p: any) => ({ id: p.id, name: p.name })));
+                }
+            } catch (error) {
+                console.error('Error fetching products:', error);
+            }
+        };
+        fetchProducts();
+    }, []);
+
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-4">
@@ -84,6 +105,25 @@ export default function NewOfferPage() {
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                 className="input min-h-20"
                                 placeholder="وصف تفصيلي للعرض"
+                            />
+                        </div>
+
+                        <div className="md:col-span-2">
+                            <ImageUpload
+                                value={formData.image}
+                                onChange={(url) => setFormData({ ...formData, image: url })}
+                                label="صورة العرض"
+                            />
+                        </div>
+
+                        <div className="md:col-span-2">
+                            <MultiSelect
+                                items={products}
+                                selected={formData.productIds}
+                                onChange={(productIds) => setFormData({ ...formData, productIds })}
+                                label="منتجات محددة (اختياري)"
+                                placeholder="بحث عن منتج..."
+                                emptyMessage="لا يوجد منتجات"
                             />
                         </div>
 

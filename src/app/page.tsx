@@ -99,24 +99,21 @@ function HeroCarousel({ offers }: { offers: Offer[] }) {
                             key={offer.id}
                             className="min-w-full h-full relative"
                         >
-                            {/* Premium Background with Image */}
-                            <div className="absolute inset-0">
-                                {offer.image ? (
-                                    <>
-                                        <Image
-                                            src={offer.image}
-                                            alt={offer.title}
-                                            fill
-                                            className="object-cover"
-                                            priority
-                                        />
-                                        {/* Elegant Overlay */}
-                                        <div className="absolute inset-0 bg-gradient-to-r from-secondary-900/95 via-secondary-900/80 to-transparent"></div>
-                                    </>
-                                ) : (
-                                    <div className="absolute inset-0 bg-gradient-to-br from-secondary-900 via-secondary-800 to-secondary-900"></div>
+                            {/* Clean White Background */}
+                            <div className="absolute inset-0 bg-white">
+                                {offer.image && (
+                                    <Image
+                                        src={offer.image}
+                                        alt={offer.title}
+                                        fill
+                                        className="object-cover opacity-10"
+                                        priority
+                                    />
                                 )}
                             </div>
+
+                            {/* Yellow Border */}
+                            <div className="absolute inset-0 border-8 border-primary rounded-3xl pointer-events-none"></div>
 
                             {/* Content */}
                             <div className="relative z-10 container mx-auto px-6 h-full flex items-center">
@@ -139,29 +136,26 @@ function HeroCarousel({ offers }: { offers: Offer[] }) {
                                         </div>
                                     </div>
 
-                                    {/* Title - Premium */}
-                                    <h2 className="text-4xl md:text-6xl font-black text-white mb-4 leading-tight drop-shadow-2xl">
+                                    {/* Title */}
+                                    <h2 className="text-5xl md:text-7xl font-black text-secondary-900 mb-4 leading-tight">
                                         {offer.title}
                                     </h2>
 
                                     {/* Description */}
                                     {offer.description && (
-                                        <p className="text-white/90 text-lg md:text-xl mb-8 leading-relaxed max-w-xl drop-shadow-lg">
+                                        <p className="text-xl md:text-2xl text-gray-700 mb-8 leading-relaxed max-w-xl font-medium">
                                             {offer.description}
                                         </p>
                                     )}
 
-                                    {/* CTA Button - Matching offers page */}
-                                    <div className="relative inline-block group/btn">
-                                        <div className="absolute inset-0 bg-gradient-to-r from-primary via-yellow-400 to-yellow-600 rounded-2xl blur opacity-50 group-hover/btn:opacity-75 transition-opacity"></div>
-                                        <Link
-                                            href={`/offers/${offer.id}`}
-                                            className="relative flex items-center gap-3 bg-gradient-to-r from-primary to-yellow-500 text-secondary-900 px-8 py-4 rounded-2xl font-bold text-lg hover:from-yellow-400 hover:to-yellow-600 transition-all duration-300 shadow-xl"
-                                        >
-                                            <span>استكشف العرض</span>
-                                            <ArrowLeft className="w-5 h-5 transition-transform group-hover/btn:-translate-x-2 duration-300" />
-                                        </Link>
-                                    </div>
+                                    {/* Yellow CTA Button */}
+                                    <Link
+                                        href={`/offers/${offer.id}`}
+                                        className="inline-flex items-center gap-3 bg-primary hover:bg-yellow-500 text-secondary-900 px-10 py-5 rounded-2xl font-black text-xl transition-all duration-300 shadow-2xl border-4 border-yellow-600 hover:scale-105"
+                                    >
+                                        <span>استكشف العرض</span>
+                                        <ArrowLeft className="w-6 h-6" />
+                                    </Link>
                                 </div>
                             </div>
 
