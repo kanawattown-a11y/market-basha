@@ -31,6 +31,8 @@ interface AuditLogData {
     oldData?: Record<string, unknown>;
     newData?: Record<string, unknown>;
     metadata?: Record<string, unknown>;
+    ipAddress?: string;
+    userAgent?: string;
 }
 
 export async function createAuditLog(data: AuditLogData) {
@@ -43,7 +45,11 @@ export async function createAuditLog(data: AuditLogData) {
                 entityId: data.entityId,
                 oldData: data.oldData as Record<string, unknown> | undefined,
                 newData: data.newData as Record<string, unknown> | undefined,
-                metadata: data.metadata as Record<string, unknown> | undefined,
+                metadata: {
+                    ...data.metadata,
+                    ipAddress: data.ipAddress,
+                    userAgent: data.userAgent,
+                } as Record<string, unknown> | undefined,
             },
         });
     } catch (error) {
@@ -123,4 +129,25 @@ export async function getRecentActivity(userId: string, limit = 10) {
     });
 
     return logs;
+}
+
+export async function cleanupOldAuditLogs(daysToKeep = 90) {
+    try {
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
+
+        const result = await prisma.auditLog.deleteMany({
+            where: {
+                createdAt: {
+                    lt: cutoffDate,
+                },
+            },
+        });
+
+        console.log(`Deleted ${result.count} old audit logs older than ${daysToKeep} days`);
+        return result.count;
+    } catch (error) {
+        console.error('Error cleaning up old audit logs:', error);
+        return 0;
+    }
 }
