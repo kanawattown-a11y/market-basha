@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import type { Prisma } from '@prisma/client';
 
 export type AuditAction =
     | 'CREATE'
@@ -43,13 +44,10 @@ export async function createAuditLog(data: AuditLogData) {
                 action: data.action,
                 entity: data.entity,
                 entityId: data.entityId,
-                oldData: data.oldData || undefined,
-                newData: data.newData || undefined,
-                metadata: {
-                    ...data.metadata,
-                    ipAddress: data.ipAddress,
-                    userAgent: data.userAgent,
-                } || undefined,
+                oldData: data.oldData as Prisma.InputJsonValue,
+                newData: data.newData as Prisma.InputJsonValue,
+                ipAddress: data.ipAddress,
+                userAgent: data.userAgent,
             },
         });
     } catch (error) {
