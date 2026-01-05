@@ -21,7 +21,19 @@ export default function CartSidebar({
     onUpdateQuantity,
     onRemove
 }: CartSidebarProps) {
-    const total = items.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);
+    const total = items.reduce((sum, item) => {
+        const price = item.activeOffer ? item.activeOffer.finalPrice : Number(item.price);
+        return sum + price * item.quantity;
+    }, 0);
+
+    const totalSavings = items.reduce((sum, item) => {
+        if (item.activeOffer) {
+            const originalPrice = Number(item.price);
+            const discount = (originalPrice - item.activeOffer.finalPrice) * item.quantity;
+            return sum + discount;
+        }
+        return sum;
+    }, 0);
 
     return (
         <>
@@ -103,13 +115,24 @@ export default function CartSidebar({
                 </div>
 
                 {items.length > 0 && (
-                    <div className="p-5 border-t border-gray-100 bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-                        <div className="flex justify-between items-center mb-6 text-lg">
-                            <span className="text-gray-600 font-medium">المجموع الكلي:</span>
-                            <span className="text-2xl font-black text-primary">{formatCurrency(total)}</span>
+
+                    <div className="border-t border-gray-100 p-5 bg-gray-50/50 space-y-3">
+                        {totalSavings > 0 && (
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-green-600 font-medium">🎉 وفرت</span>
+                                <span className="text-green-600 font-bold">{formatCurrency(totalSavings)}</span>
+                            </div>
+                        )}
+                        <div className="flex items-center justify-between text-lg">
+                            <span className="font-bold text-secondary-800">الإجمالي</span>
+                            <span className="text-xl font-black text-primary">{formatCurrency(total)}</span>
                         </div>
-                        <Link href="/checkout" className="btn btn-primary w-full btn-lg font-bold shadow-lg shadow-primary/20" onClick={onClose}>
-                            أكمل الطلب الآن
+                        <Link
+                            href="/checkout"
+                            onClick={onClose}
+                            className="btn btn-primary w-full btn-lg shadow-lg shadow-primary/20"
+                        >
+                            متابعة الدفع
                         </Link>
                     </div>
                 )}

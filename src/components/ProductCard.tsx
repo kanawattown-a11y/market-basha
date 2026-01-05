@@ -17,6 +17,13 @@ export interface Product {
     category: { name: string };
     isFeatured: boolean;
     description?: string | null;
+    activeOffer?: {
+        id: string;
+        title: string;
+        discountType: string;
+        discountValue: number;
+        finalPrice: number;
+    };
 }
 
 interface ProductCardProps {
@@ -28,9 +35,18 @@ export default function ProductCard({
     product,
     onAddToCart
 }: ProductCardProps) {
-    const discount = product.compareAtPrice && Number(product.compareAtPrice) > 0
-        ? Math.round(((Number(product.compareAtPrice) - Number(product.price)) / Number(product.compareAtPrice)) * 100)
-        : 0;
+    // Prioritize active offer discount
+    let discount = 0;
+    let finalPrice = Number(product.price);
+    let showOfferBadge = false;
+
+    if (product.activeOffer) {
+        finalPrice = product.activeOffer.finalPrice;
+        discount = Math.round(((Number(product.price) - finalPrice) / Number(product.price)) * 100);
+        showOfferBadge = true;
+    } else if (product.compareAtPrice && Number(product.compareAtPrice) > 0) {
+        discount = Math.round(((Number(product.compareAtPrice) - Number(product.price)) / Number(product.compareAtPrice)) * 100);
+    }
 
     const [isFav, setIsFav] = useState(false);
 
@@ -74,7 +90,10 @@ export default function ProductCard({
                     )}
 
                     {discount > 0 && (
-                        <span className="absolute top-3 right-3 bg-red-500 text-white px-2 py-1 rounded-lg text-xs font-bold shadow-sm z-10">
+                        <span className={cn(
+                            "absolute top-3 right-3 px-2 py-1 rounded-lg text-xs font-bold shadow-sm z-10",
+                            showOfferBadge ? "bg-primary text-secondary-900" : "bg-red-500 text-white"
+                        )}>
                             -{discount}%
                         </span>
                     )}
@@ -108,10 +127,12 @@ export default function ProductCard({
                 </Link>
 
                 <div className="flex items-center gap-2 mt-2">
-                    <span className="text-lg font-bold text-primary">{formatCurrency(Number(product.price))}</span>
-                    {product.compareAtPrice && Number(product.compareAtPrice) > 0 && (
+                    <span className="text-lg font-bold text-primary">
+                        {formatCurrency(finalPrice)}
+                    </span>
+                    {(product.activeOffer || (product.compareAtPrice && Number(product.compareAtPrice) > 0)) && (
                         <span className="text-sm text-gray-400 line-through">
-                            {formatCurrency(Number(product.compareAtPrice))}
+                            {formatCurrency(product.activeOffer ? Number(product.price) : Number(product.compareAtPrice))}
                         </span>
                     )}
                 </div>

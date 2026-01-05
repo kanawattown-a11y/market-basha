@@ -9,6 +9,13 @@ export interface CartItem {
     image: string | null;
     stock: number;
     quantity: number;
+    activeOffer?: {
+        id: string;
+        title: string;
+        discountType: string;
+        discountValue: number;
+        finalPrice: number;
+    };
 }
 
 interface CartContextType {
@@ -19,6 +26,7 @@ interface CartContextType {
     clearCart: () => void;
     cartCount: number;
     cartTotal: number;
+    totalSavings: number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -112,7 +120,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const cartCount = items.reduce((sum, item) => sum + item.quantity, 0);
-    const cartTotal = items.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);
+
+    // Calculate total using offer prices if available
+    const cartTotal = items.reduce((sum, item) => {
+        const price = item.activeOffer ? item.activeOffer.finalPrice : Number(item.price);
+        return sum + price * item.quantity;
+    }, 0);
+
+    // Calculate total savings from offers
+    const totalSavings = items.reduce((sum, item) => {
+        if (item.activeOffer) {
+            const originalPrice = Number(item.price);
+            const discount = (originalPrice - item.activeOffer.finalPrice) * item.quantity;
+            return sum + discount;
+        }
+        return sum;
+    }, 0);
 
     return (
         <CartContext.Provider value={{
@@ -123,6 +146,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             clearCart,
             cartCount,
             cartTotal,
+            totalSavings,
         }}>
             {children}
         </CartContext.Provider>

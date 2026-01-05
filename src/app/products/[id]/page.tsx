@@ -32,6 +32,13 @@ interface Product {
     stock: number;
     trackStock: boolean;
     category: { id: string; name: string };
+    activeOffer?: {
+        id: string;
+        title: string;
+        discountType: string;
+        discountValue: number;
+        finalPrice: number;
+    };
 }
 
 export default function ProductDetailPage() {

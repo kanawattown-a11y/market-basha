@@ -88,8 +88,56 @@ export async function GET(request: NextRequest) {
             prisma.product.count({ where }),
         ]);
 
+        // Get active offers
+        const now = new Date();
+        const activeOffers = await prisma.offer.findMany({
+            where: {
+                isActive: true,
+                startDate: { lte: now },
+                endDate: { gte: now },
+            },
+            include: {
+                products: {
+                    select: {
+                        productId: true,
+                    },
+                },
+            },
+        });
+
+        // Map products to their offers
+        const productsWithOffers = products.map(product => {
+            const offer = activeOffers.find(o =>
+                o.products.some(p => p.productId === product.id)
+            );
+
+            if (offer) {
+                const originalPrice = Number(product.price);
+                let finalPrice = originalPrice;
+
+                if (offer.discountType.toLowerCase() === 'percentage') {
+                    finalPrice = originalPrice - (originalPrice * Number(offer.discountValue) / 100);
+                } else {
+                    finalPrice = originalPrice - Number(offer.discountValue);
+                }
+
+                return {
+                    ...product,
+                    activeOffer: {
+                        id: offer.id,
+                        title: offer.title,
+                        discountType: offer.discountType,
+                        discountValue: offer.discountValue,
+                        finalPrice: Math.max(0, finalPrice),
+                    },
+                };
+            }
+
+            return product;
+        });
+
         return NextResponse.json({
-            products,
+            products: productsWithOffers,
             pagination: {
                 page,
                 limit,
