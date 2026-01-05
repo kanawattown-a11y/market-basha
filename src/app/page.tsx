@@ -98,35 +98,54 @@ function HeroCarousel({ offers }: { offers: Offer[] }) {
                             key={offer.id}
                             className="min-w-full h-full relative"
                         >
-                            <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary-400 to-secondary-800/80 z-10 opacity-90" />
-                            {offer.image && (
-                                <Image
-                                    src={offer.image}
-                                    alt={offer.title}
-                                    fill
-                                    className="object-cover animate-pan-image"
-                                    priority
-                                />
-                            )}
-                            <div className="absolute inset-0 z-20 flex items-center justify-between p-8 md:p-16 container mx-auto">
-                                <div className="max-w-2xl animate-float">
-                                    <span className="inline-block bg-white text-secondary-900 px-4 py-1.5 rounded-full text-sm font-bold mb-6 shadow-lg">
-                                        {offer.discountType === 'percentage' ? `🔥 خصم ${offer.discountValue}%` : `🔥 خصم ${formatCurrency(Number(offer.discountValue))}`}
-                                    </span>
-                                    <h2 className="text-4xl md:text-7xl font-black text-white mb-6 leading-tight drop-shadow-lg">
+                            {/* Clean Background - No Gradient */}
+                            <div className="absolute inset-0 bg-gray-50">
+                                {offer.image && (
+                                    <>
+                                        <Image
+                                            src={offer.image}
+                                            alt={offer.title}
+                                            fill
+                                            className="object-cover opacity-20"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/90 to-white/70"></div>
+                                    </>
+                                )}
+                            </div>
+
+                            {/* Clean Content - Minimal */}
+                            <div className="relative z-10 container mx-auto px-6 h-full flex items-center">
+                                <div className="max-w-2xl">
+                                    {/* Discount Badge - Refined */}
+                                    <div className="inline-flex items-center gap-2 bg-white border-2 border-secondary-900 px-6 py-3 rounded-2xl mb-6 shadow-lg">
+                                        <Tag className="w-5 h-5 text-secondary-900" />
+                                        <span className="text-2xl font-black text-secondary-900">
+                                            {offer.discountType.toLowerCase() === 'percentage'
+                                                ? `خصم ${offer.discountValue}%`
+                                                : `خصم ${offer.discountValue} ل.س`}
+                                        </span>
+                                    </div>
+
+                                    {/* Title - Professional */}
+                                    <h2 className="text-4xl md:text-6xl font-black text-secondary-900 mb-4 leading-tight">
                                         {offer.title}
                                     </h2>
+
+                                    {/* Description - Clean */}
                                     {offer.description && (
-                                        <p className="text-white/90 text-lg md:text-xl mb-8 font-medium max-w-lg leading-relaxed">{offer.description}</p>
+                                        <p className="text-lg md:text-xl text-gray-700 mb-8 leading-relaxed max-w-xl">
+                                            {offer.description}
+                                        </p>
                                     )}
-                                    <Link href={`/offers/${offer.id}`} className="btn bg-white text-secondary-900 hover:bg-gray-100 hover:scale-105 btn-lg border-0 shadow-xl">
-                                        تسوق العرض
-                                        <ArrowLeft className="w-5 h-5 mr-2" />
+
+                                    {/* CTA - Simple */}
+                                    <Link
+                                        href={`/offers/${offer.id}`}
+                                        className="inline-flex items-center gap-3 bg-secondary-900 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-secondary-800 transition-all hover:scale-105 shadow-xl"
+                                    >
+                                        <span>استكشف العرض</span>
+                                        <ArrowLeft className="w-5 h-5" />
                                     </Link>
-                                </div>
-                                {/* Hero Logo - Visible on all screens, small on mobile */}
-                                <div className="w-20 h-20 lg:w-80 lg:h-80 relative animate-float delay-100 flex-shrink-0 ml-4">
-                                    <Image src="/logo.svg" alt="Market Basha" fill className="object-contain drop-shadow-2xl" />
                                 </div>
                             </div>
                         </div>
