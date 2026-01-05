@@ -106,49 +106,57 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
                     </Link>
 
                     {product.description && (
-                        <p className="text-xs text-gray-500 line-clamp-1 mb-1">{product.description}</p>
+                        <p className="text-xs text-gray-500 line-clamp-1 mb-2">{product.description}</p>
                     )}
 
-                    <div className="flex items-center justify-between mt-auto">
-                        <div className="flex flex-col">
-                            <div className="flex items-baseline gap-1">
-                                <span className="font-black text-primary text-lg">
-                                    {formatCurrency(displayPrice)}
-                                </span>
-                                <span className="text-[10px] text-gray-400">/{product.unit}</span>
-                            </div>
-                            {hasDiscount && (
-                                <span className="text-xs text-gray-400 line-through">
-                                    {formatCurrency(originalPrice)}
-                                </span>
-                            )}
+                    {/* Price */}
+                    <div className="mb-2">
+                        <div className="flex items-baseline gap-1">
+                            <span className="font-black text-primary text-lg">
+                                {formatCurrency(displayPrice)}
+                            </span>
+                            <span className="text-[10px] text-gray-400">/{product.unit}</span>
                         </div>
-
-                        {!cartItem ? (
-                            <button
-                                onClick={handleAddToCart}
-                                disabled={product.stock === 0}
-                                className={cn(
-                                    'w-9 h-9 rounded-full flex items-center justify-center transition-all',
-                                    product.stock === 0
-                                        ? 'bg-gray-200 cursor-not-allowed'
-                                        : 'bg-primary hover:bg-primary-600 text-secondary'
-                                )}
-                            >
-                                <ShoppingCart className="w-4 h-4" />
-                            </button>
-                        ) : (
-                            <div className="flex items-center gap-1">
-                                <button onClick={decrementQuantity} className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center">
-                                    <Minus className="w-3 h-3" />
-                                </button>
-                                <span className="text-sm font-bold w-6 text-center">{cartItem.quantity}</span>
-                                <button onClick={incrementQuantity} disabled={cartItem.quantity >= product.stock} className="w-7 h-7 rounded-full bg-primary hover:bg-primary-600 text-secondary flex items-center justify-center disabled:opacity-50">
-                                    <Plus className="w-3 h-3" />
-                                </button>
-                            </div>
+                        {hasDiscount && (
+                            <span className="text-xs text-gray-400 line-through">
+                                {formatCurrency(originalPrice)}
+                            </span>
                         )}
                     </div>
+
+                    {/* Cart Button - Full Width at Bottom */}
+                    {!cartItem ? (
+                        <button
+                            onClick={handleAddToCart}
+                            disabled={product.stock === 0}
+                            className={cn(
+                                'w-full py-2 rounded-lg flex items-center justify-center gap-2 font-semibold text-sm transition-all',
+                                product.stock === 0
+                                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                    : 'bg-primary hover:bg-primary-600 text-secondary shadow-md'
+                            )}
+                        >
+                            <ShoppingCart className="w-4 h-4" />
+                            <span>إضافة للسلة</span>
+                        </button>
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={decrementQuantity}
+                                className="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                            >
+                                <Minus className="w-4 h-4" />
+                            </button>
+                            <span className="text-lg font-bold flex-1 text-center">{cartItem.quantity}</span>
+                            <button
+                                onClick={incrementQuantity}
+                                disabled={cartItem.quantity >= product.stock}
+                                className="w-10 h-10 rounded-lg bg-primary hover:bg-primary-600 text-secondary flex items-center justify-center disabled:opacity-50 transition-colors"
+                            >
+                                <Plus className="w-4 h-4" />
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Right: Product Image */}
