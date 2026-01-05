@@ -26,7 +26,12 @@ export async function DELETE(
 
         switch (type) {
             case 'users':
-                deleted = await prisma.user.delete({ where: { id } });
+                // For users: Just delete the user, keep all relations intact
+                // Orders, reviews, tickets etc. will NOT be deleted
+                // Foreign keys will be set to NULL automatically (if schema allows)
+                deleted = await prisma.user.delete({
+                    where: { id }
+                });
                 entityName = 'USER';
                 break;
 
@@ -60,7 +65,7 @@ export async function DELETE(
                 });
                 if (productsCount > 0) {
                     return NextResponse.json(
-                        { message: `لا يمكن الحذف النهائي، المتجر يحتوي على ${productsCount} منتج نشط` },
+                        { message: `لا يمكن الحذف النهائي، التصنيف يحتوي على ${productsCount} منتج نشط` },
                         { status: 400 }
                     );
                 }
