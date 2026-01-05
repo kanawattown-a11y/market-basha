@@ -17,6 +17,7 @@ enum AuditEntity {
   CATEGORY
   PRODUCT
   OFFER
+  CATEGORY_OFFER
   ORDER
   SETTINGS
 }
@@ -175,6 +176,7 @@ model Category {
   children    Category[] @relation("CategoryChildren")
   
   products    Product[]
+  offers      OfferCategory[] // Category offers
   
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -266,6 +268,7 @@ model Offer {
   deletedAt   DateTime? // Soft delete
   
   products    OfferProduct[]
+  categories  OfferCategory[] // Category-wide offers
   
   @@index([isActive])
   @@index([startDate, endDate])
@@ -279,6 +282,20 @@ model OfferProduct {
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   
   @@unique([offerId, productId])
+}
+
+model OfferCategory {
+  id         String   @id @default(cuid())
+  offerId    String
+  offer      Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  
+  createdAt  DateTime @default(now())
+  
+  @@unique([offerId, categoryId])
+  @@index([offerId])
+  @@index([categoryId])
 }
 
 model Order {

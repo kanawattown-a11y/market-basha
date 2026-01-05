@@ -19,6 +19,7 @@ export type AuditEntity =
     | 'ORDER'
     | 'TICKET'
     | 'OFFER'
+    | 'CATEGORY_OFFER'
     | 'SERVICE_AREA'
     | 'ADDRESS'
     | 'REVIEW'
