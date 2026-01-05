@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { createAuditLog } from '@/lib/audit';
 
 // GET /api/offers/[id] - Get single offer
 export async function GET(
@@ -32,7 +33,7 @@ export async function PUT(
 ) {
     try {
         const user = await getSession();
-        if (!user || user.role !== 'ADMIN') {
+        if (!user || !['ADMIN', 'OPERATIONS'].includes(user.role)) {
             return NextResponse.json({ message: 'غير مصرح' }, { status: 403 });
         }
 
@@ -42,6 +43,15 @@ export async function PUT(
         const offer = await prisma.offer.update({
             where: { id },
             data: body,
+        });
+
+        // Audit log
+        await createAuditLog({
+            userId: user.id,
+            action: 'UPDATE',
+            entity: 'OFFER',
+            entityId: id,
+            newData: body as Record<string, unknown>,
         });
 
         return NextResponse.json({ message: 'تم التحديث', offer });
@@ -58,7 +68,7 @@ export async function DELETE(
 ) {
     try {
         const user = await getSession();
-        if (!user || user.role !== 'ADMIN') {
+        if (!user || !['ADMIN', 'OPERATIONS'].includes(user.role)) {
             return NextResponse.json({ message: 'غير مصرح' }, { status: 403 });
         }
 
@@ -67,6 +77,14 @@ export async function DELETE(
         await prisma.offer.update({
             where: { id },
             data: { deletedAt: new Date() },
+        });
+
+        // Audit log
+        await createAuditLog({
+            userId: user.id,
+            action: 'DELETE',
+            entity: 'OFFER',
+            entityId: id,
         });
 
         return NextResponse.json({ message: 'تم نقل العرض إلى سلة المهملات' });
