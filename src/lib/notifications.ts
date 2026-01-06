@@ -287,3 +287,96 @@ export async function registerUserToRoleTopic(
     const topic = `role_${role.toLowerCase()}`;
     await subscribeToTopic([fcmToken], topic);
 }
+
+// إشعار موافقة/رفض الحساب
+export async function notifyUserStatusChange(
+    userId: string,
+    status: 'APPROVED' | 'REJECTED',
+    reason?: string
+): Promise<void> {
+    const messages = {
+        APPROVED: {
+            title: 'تم تفعيل حسابك ✅',
+            message: 'مرحباً بك! تم تفعيل حسابك ويمكنك الآن البدء بالتسوق',
+        },
+        REJECTED: {
+            title: 'تم رفض حسابك ❌',
+            message: reason || 'نأسف، تم رفض طلب تفعيل حسابك. يرجى التواصل مع الدعم',
+        },
+    };
+
+    await createAndSendNotification(
+        userId,
+        'NEW_USER',
+        messages[status].title,
+        messages[status].message
+    );
+}
+
+// إشعار الرد على التقييم
+export async function notifyReviewResponse(
+    userId: string,
+    productName: string,
+    response: string
+): Promise<void> {
+    await createAndSendNotification(
+        userId,
+        'OFFER',
+        'رد على تقييمك',
+        `تم الرد على تقييمك للمنتج "${productName}": ${response.substring(0, 100)}`,
+        { productName, response }
+    );
+}
+
+// إشعار توفر منتج كان نافذاً
+export async function notifyProductRestocked(
+    productId: string,
+    productName: string,
+    interestedUserIds: string[]
+): Promise<void> {
+    for (const userId of interestedUserIds) {
+        await createAndSendNotification(
+            userId,
+            'LOW_STOCK',
+            'المنتج متوفر الآن! 🎉',
+            `المنتج "${productName}" الذي كنت تبحث عنه أصبح متوفراً الآن`,
+            { productId }
+        );
+    }
+}
+
+// إشعار عرض جديد
+export async function notifyNewOffer(
+    offerId: string,
+    offerTitle: string,
+    discountValue: number,
+    discountType: string
+): Promise<void> {
+    const discount = discountType === 'percentage' ? `${discountValue}%` : `${discountValue} ل.س`;
+
+    await sendPushToRole('USER', {
+        title: 'عرض جديد! 🎁',
+        body: `${offerTitle} - خصم ${discount}`,
+        data: { offerId },
+        clickAction: `/offers/${offerId}`,
+    });
+
+    // حفظ في قاعدة البيانات لكل المستخدمين النشطين
+    const activeUsers = await prisma.user.findMany({
+        where: { role: 'USER', status: 'APPROVED' },
+        take: 100, // First 100 active users
+    });
+
+    for (const user of activeUsers) {
+        await prisma.notification.create({
+            data: {
+                userId: user.id,
+                type: 'OFFER',
+                title: 'عرض جديد',
+                message: `${offerTitle} - خصم ${discount}`,
+                data: { offerId },
+            },
+        });
+    }
+}
+

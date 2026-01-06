@@ -74,6 +74,15 @@ export async function GET(
                 statusHistory: {
                     orderBy: { createdAt: 'desc' },
                 },
+                review: {
+                    select: {
+                        id: true,
+                        productRating: true,
+                        driverRating: true,
+                        comment: true,
+                        createdAt: true,
+                    },
+                },
             },
         });
 

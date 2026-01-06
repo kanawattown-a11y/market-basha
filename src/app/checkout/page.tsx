@@ -32,6 +32,7 @@ interface CartItem {
     quantity: number;
     image: string | null;
     stock: number;
+    category?: { name: string }; // For multi-store detection
 }
 
 interface ServiceArea {
@@ -401,6 +402,41 @@ export default function CheckoutPage() {
                                         <span className="text-primary">{formatCurrency(total)}</span>
                                     </div>
                                 </div>
+
+                                {/* Multi-Store Warning */}
+                                {(() => {
+                                    // Group products by category (store)
+                                    const storeSet = new Set(cartItems.map(item => item.category?.name || 'غير معروف'));
+                                    const storeCount = storeSet.size;
+
+                                    if (storeCount > 1) {
+                                        const extraStoreFee = 5000; // Default fee per extra store
+                                        const additionalFee = (storeCount - 1) * extraStoreFee;
+
+                                        return (
+                                            <div className="bg-yellow-50 border-2 border-yellow-400 rounded-xl p-4 space-y-2">
+                                                <div className="flex items-start gap-3">
+                                                    <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                                                    <div className="flex-1">
+                                                        <p className="font-bold text-yellow-800 mb-1">
+                                                            تنبيه: طلب من عدة متاجر
+                                                        </p>
+                                                        <p className="text-sm text-yellow-700 mb-2">
+                                                            سلتك تحتوي على منتجات من <span className="font-bold">{storeCount} متاجر</span> مختلفة.
+                                                        </p>
+                                                        <p className="text-sm text-yellow-700 mb-2">
+                                                            سيتم إضافة <span className="font-bold">{formatCurrency(additionalFee)}</span> كرسوم إضافية للمتاجر الإضافية.
+                                                        </p>
+                                                        <div className="text-xs text-yellow-600 bg-yellow-100 p-2 rounded">
+                                                            <strong>المتاجر:</strong> {Array.from(storeSet).join(' • ')}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    }
+                                    return null;
+                                })()}
 
                                 {error && (
                                     <div className="flex items-center gap-2 text-red-600 bg-red-50 p-3 rounded-lg text-sm">

@@ -20,7 +20,7 @@ export default function AddressesPage() {
     const [addresses, setAddresses] = useState<Address[]>([]);
     const [loading, setLoading] = useState(true);
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-    const toast = useToast();
+    const { showToast } = useToast();
 
     const fetchAddresses = async () => {
         try {
@@ -48,10 +48,10 @@ export default function AddressesPage() {
                 body: JSON.stringify({ isDefault: true }),
             });
             fetchAddresses();
-            toast.success('تم تعيين العنوان كافتراضي');
+            showToast('تم تعيين العنوان كافتراضي', 'success');
         } catch (error) {
             console.error('Error setting default address:', error);
-            toast.error('حدث خطأ في العملية');
+            showToast('حدث خطأ في العملية', 'error');
         }
     };
 
@@ -61,16 +61,16 @@ export default function AddressesPage() {
 
             if (!res.ok) {
                 const data = await res.json();
-                toast.error(data.message || 'حدث خطأ في الحذف');
+                showToast(data.message || 'حدث خطأ في الحذف', 'error');
                 return;
             }
 
             fetchAddresses();
-            toast.success('تم حذف العنوان بنجاح');
+            showToast('تم حذف العنوان بنجاح', 'success');
             setDeleteConfirm(null);
         } catch (error) {
             console.error('Error deleting address:', error);
-            toast.error('حدث خطأ في الاتصال بالسيرفر');
+            showToast('حدث خطأ في الاتصال بالسيرفر', 'error');
         }
     };
 

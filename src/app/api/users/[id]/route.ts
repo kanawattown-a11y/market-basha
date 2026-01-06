@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { updateUserSchema } from '@/lib/validations';
 import { createAuditLog } from '@/lib/audit';
-import { createAndSendNotification } from '@/lib/notifications';
+import { createAndSendNotification, notifyUserStatusChange } from '@/lib/notifications';
 
 // GET /api/users/[id] - Get a single user
 export async function GET(
@@ -174,20 +174,20 @@ export async function PUT(
             },
         });
 
-        // Notify user of status change
+        // Notify user of status change (APPROVED/REJECTED)
         if (isAdmin && data.status && data.status !== oldUser.status) {
-            const statusMessages: Record<string, string> = {
-                APPROVED: 'تم تفعيل حسابك بنجاح! يمكنك الآن التسوق',
-                REJECTED: 'تم رفض طلب تسجيلك',
-                SUSPENDED: 'تم تعليق حسابك',
-            };
-
-            if (statusMessages[data.status]) {
+            if (data.status === 'APPROVED' || data.status === 'REJECTED') {
+                await notifyUserStatusChange(
+                    id,
+                    data.status as 'APPROVED' | 'REJECTED',
+                    data.status === 'REJECTED' ? 'لم يتم استيفاء المتطلبات' : undefined
+                );
+            } else if (data.status === 'SUSPENDED') {
                 await createAndSendNotification(
                     id,
                     'NEW_USER',
-                    'تحديث حالة الحساب',
-                    statusMessages[data.status]
+                    'تعليق الحساب',
+                    'تم تعليق حسابك مؤقتاً. يرجى التواصل مع الإدارة'
                 );
             }
         }
